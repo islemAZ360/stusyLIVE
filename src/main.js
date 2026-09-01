@@ -1,0 +1,25 @@
+import './css/fonts.css';
+import './css/tokens.css';
+import './css/base.css';
+import './css/components.css';
+import './css/pages.css';
+
+import './js/utils.js';
+import './js/strings.js';
+import './js/db.js';
+import './js/store.js';
+import './js/i18n.js';
+import './js/components.js';
+import './js/supabase.js';
+import './js/calendar.js';
+import './js/pages/overview.js';
+import './js/pages/tasks.js';
+import './js/pages/notes.js';
+import './js/pages/stats.js';
+import './js/pages/vault.js';
+import './js/pages/places.js';
+import './js/pages/teachers.js';
+import './js/pages/contacts.js';
+import './js/pages/profile.js';
+import './js/router.js';
+import './js/app.js';

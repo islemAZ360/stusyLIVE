@@ -1,0 +1,137 @@
+/* ============================================================
+   Study Live — Design Tokens
+   Direction: warm university paper & stationery.
+   Light = cream paper + ink; Dark = warm night desk (never pure black).
+   Accent budget: FAB / primary action + active tab only.
+   ============================================================ */
+
+:root {
+  /* Neutrals — paper */
+  --bg: #f7f2e9;
+  --surface: #fdfaf3;
+  --surface-2: #efe7d8;
+  --surface-3: #e8dfc9;
+  --ink: #282217;
+  --ink-muted: #6b6151;
+  --border: #e4dac6;
+  --border-strong: #d2c5aa;
+
+  /* Accent — ballpoint pen blue */
+  --accent: #33589e;
+  --accent-strong: #2a4a86;
+  --on-accent: #ffffff;
+  --accent-soft: color-mix(in srgb, var(--accent) 11%, var(--surface));
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #33589e 0%, #5b7cc5 100%);
+  --gradient-warm: linear-gradient(135deg, #f7f2e9 0%, #efe7d8 100%);
+  --gradient-accent-soft: linear-gradient(135deg, color-mix(in srgb, var(--accent) 8%, var(--surface)) 0%, color-mix(in srgb, var(--accent) 16%, var(--surface)) 100%);
+
+  /* Glassmorphism */
+  --glass-bg: rgba(253, 250, 243, 0.72);
+  --glass-bg-strong: rgba(253, 250, 243, 0.88);
+  --glass-border: rgba(228, 218, 198, 0.5);
+  --glass-blur: 16px;
+
+  /* Semantic */
+  --danger: #b93b32;
+  --danger-soft: color-mix(in srgb, var(--danger) 10%, var(--surface));
+  --success: #3f7a4e;
+  --success-soft: color-mix(in srgb, var(--success) 12%, var(--surface));
+  --warn: #96660f;
+  --warn-soft: color-mix(in srgb, var(--warn) 12%, var(--surface));
+  --none-subject: #8d8d8d;
+
+  /* Academic accents */
+  --gold: #d4a843;
+  --gold-soft: color-mix(in srgb, var(--gold) 15%, var(--surface));
+
+  /* Stationery accents */
+  --hl: #ffe9a8;            /* highlighter stroke */
+  --hl-backlog: #ffd6cf;    /* red highlighter for overdue group */
+  --hl-done: #cdeccd;       /* green highlighter for completed group */
+  --ring: #c9b892;          /* spiral binding rings */
+
+  /* Effects */
+  --shadow-1: 0 1px 3px rgba(62, 50, 28, 0.04), 0 2px 12px rgba(62, 50, 28, 0.06);
+  --shadow-2: 0 8px 28px rgba(56, 44, 22, 0.14);
+  --shadow-3: 0 12px 40px rgba(56, 44, 22, 0.18);
+  --shadow-glow: 0 4px 18px color-mix(in srgb, var(--accent) 28%, transparent);
+  --shadow-card-hover: 0 8px 32px rgba(56, 44, 22, 0.16), 0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent);
+  --scrim: rgba(40, 34, 23, 0.45);
+
+  /* Shape & rhythm */
+  --radius: 12px;
+  --radius-s: 9px;
+  --radius-xs: 7px;
+  --radius-l: 18px;
+  --radius-xl: 24px;
+  --content-w: 720px;
+
+  /* Type */
+  --font: 'Manrope', 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, Arial, sans-serif;
+  /* Display serif for headings & the brand — academic, engraved-plate feel.
+     Amiri (self-hosted) for Arabic/Latin; system serif elsewhere (ru). */
+  --font-display: 'Amiri', 'Sakkal Majalla', Georgia, 'Times New Roman', serif;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --t-fast: 140ms;
+  --t-med: 220ms;
+  --t-sheet: 280ms;
+
+  /* Layout */
+  --header-h: 56px;
+  --nav-h: 64px;
+
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  --bg: #131110;
+  --surface: #1c1915;
+  --surface-2: #262219;
+  --surface-3: #302b20;
+  --ink: #f2ecdf;
+  --ink-muted: #b2a68f;
+  --border: #352e22;
+  --border-strong: #48402e;
+
+  --accent: #8fb0ee;
+  --accent-strong: #a9c2f2;
+  --on-accent: #17233b;
+  --accent-soft: color-mix(in srgb, var(--accent) 15%, var(--surface));
+
+  --gradient-primary: linear-gradient(135deg, #5b7cc5 0%, #8fb0ee 100%);
+  --gradient-warm: linear-gradient(135deg, #1c1915 0%, #262219 100%);
+  --gradient-accent-soft: linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, var(--surface)) 0%, color-mix(in srgb, var(--accent) 20%, var(--surface)) 100%);
+
+  --glass-bg: rgba(28, 25, 21, 0.72);
+  --glass-bg-strong: rgba(28, 25, 21, 0.88);
+  --glass-border: rgba(53, 46, 34, 0.5);
+
+  --danger: #e8837a;
+  --danger-soft: color-mix(in srgb, var(--danger) 14%, var(--surface));
+  --success: #8cc49a;
+  --success-soft: color-mix(in srgb, var(--success) 14%, var(--surface));
+  --warn: #d9ac55;
+  --warn-soft: color-mix(in srgb, var(--warn) 15%, var(--surface));
+
+  --gold: #e8c45e;
+  --gold-soft: color-mix(in srgb, var(--gold) 15%, var(--surface));
+
+  --hl: rgba(255, 214, 90, 0.28);
+  --hl-backlog: rgba(232, 131, 122, 0.26);
+  --hl-done: rgba(140, 196, 154, 0.24);
+  --ring: #55492f;
+
+  --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.35), 0 2px 12px rgba(0, 0, 0, 0.28);
+  --shadow-2: 0 8px 28px rgba(0, 0, 0, 0.45);
+  --shadow-3: 0 12px 40px rgba(0, 0, 0, 0.55);
+  --shadow-glow: 0 4px 18px color-mix(in srgb, var(--accent) 20%, transparent);
+  --shadow-card-hover: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px color-mix(in srgb, var(--accent) 14%, transparent);
+  --scrim: rgba(8, 6, 3, 0.62);
+
+  color-scheme: dark;
+}
