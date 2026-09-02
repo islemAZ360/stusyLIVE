@@ -2065,6 +2065,73 @@
   opacity: 0.9;
 }
 
+/* ---- place details sheet (tap a saved marker) ---- */
+
+.place-details-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.place-details-head .place-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--c, #33589e);
+  flex: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c, #33589e) 22%, transparent);
+}
+
+.place-details-name {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.place-details-desc {
+  margin: 0 0 12px;
+  color: var(--text-2, var(--muted, #777));
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.place-details-coords {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  margin-bottom: 16px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink, var(--text, inherit));
+  font: inherit;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.place-details-coords:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.place-details-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.place-details-actions .btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding-inline: 8px;
+  font-size: 13px;
+}
+
 @keyframes pl-locate-spin {
   to {
     transform: rotate(360deg);

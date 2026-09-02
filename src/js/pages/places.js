@@ -194,16 +194,13 @@
     places.forEach(function (p) {
       var pm = new ymaps.Placemark(
         [p.lat, p.lng],
-        {
-          balloonContentHeader: u.esc(p.name),
-          balloonContentBody:
-            (p.desc ? u.esc(p.desc) + '<br>' : '') +
-            '<span dir="ltr">' + fmt(p) + '</span><br>' +
-            '<button class="places-popup-btn edit" data-copy="' + p.id + '">' +
-            u.esc(t('pl.copyCoords')) + '</button>',
-        },
-        { preset: 'islands#circleDotIcon', iconColor: p.color || '#33589e' }
+        {},
+        { preset: 'islands#circleDotIcon', iconColor: p.color || '#33589e', hasBalloon: false }
       );
+      // tap a marker -> place details sheet (like regular map apps)
+      pm.events.add('click', function () {
+        showPlaceDetails(p);
+      });
       map.geoObjects.add(pm);
       markerById[p.id] = pm;
     });
@@ -213,14 +210,48 @@
     }
   }
 
-  function popupHtml(p) {
-    return (
-      '<div class="places-popup-header">' + u.esc(p.name) + '</div>' +
-      (p.desc ? '<div class="places-popup-desc">' + u.esc(p.desc) + '</div>' : '') +
-      '<div dir="ltr" style="font-size:12.5px;margin-bottom:10px">' + fmt(p) + '</div>' +
-      '<button class="places-popup-btn edit" data-copy="' + p.id + '">' +
-      u.esc(t('pl.copyCoords')) + '</button>'
-    );
+  /* Tap a saved place marker -> full details sheet.
+     Implemented once here so Yandex and Leaflet behave identically. */
+  function showPlaceDetails(p) {
+    var body = document.createElement('div');
+    body.className = 'sheet-form place-details';
+    body.innerHTML =
+      '<div class="place-details-head">' +
+      '<span class="place-dot" style="--c:' + u.esc(p.color || '#33589e') + '"></span>' +
+      '<span class="place-details-name">' + u.esc(p.name) + '</span>' +
+      '</div>' +
+      (p.desc ? '<p class="place-details-desc">' + u.esc(p.desc) + '</p>' : '') +
+      '<button class="place-details-coords" data-act="copy" type="button" dir="ltr"' +
+      ' title="' + u.esc(t('pl.copyCoords')) + '">' +
+      SL.ui.icon('mapPin', 15) + '<span>' + fmt(p) + '</span></button>' +
+      '<div class="sheet-actions place-details-actions">' +
+      '<button class="btn btn-ghost" data-act="ext" type="button">' +
+      SL.ui.icon('globe', 17) + '<span>' + u.esc(t('pl.openExt')) + '</span></button>' +
+      '<button class="btn btn-ghost" data-act="edit" type="button">' +
+      SL.ui.icon('pencil', 17) + '<span>' + u.esc(t('a.edit')) + '</span></button>' +
+      '<button class="btn btn-danger" data-act="del" type="button">' +
+      SL.ui.icon('trash', 17) + '<span>' + u.esc(t('a.delete')) + '</span></button>' +
+      '</div>';
+
+    var sheet = null;
+    body.querySelectorAll('[data-act]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var a = btn.getAttribute('data-act');
+        if (a === 'copy') {
+          copyPlace(p.id); // keep the sheet open after copying
+          return;
+        }
+        sheet.close();
+        if (a === 'ext') window.open(externalUrl(p), '_blank', 'noopener');
+        else if (a === 'edit') openPlaceForm(p);
+        else if (a === 'del') deletePlace(p);
+      });
+    });
+
+    sheet = SL.ui.openSheet({
+      title: p.name, // openSheet uses textContent — safe with any name
+      body: body,
+    });
   }
 
   /* Tile providers, tried in order: a dark theme first (matches the
@@ -315,7 +346,10 @@
         opacity: 1,
         fillOpacity: 0.95,
       }).addTo(map);
-      m.bindPopup(popupHtml(p));
+      // tap a marker -> place details sheet
+      m.on('click', function () {
+        showPlaceDetails(p);
+      });
       markerById[p.id] = m;
     });
 
@@ -336,12 +370,8 @@
     var coords = [p.lat, p.lng];
     if (engine === 'yandex') {
       map.setCenter(coords, 16, { checkZoomRange: true });
-      var pm = markerById[p.id];
-      if (pm && pm.balloon && pm.balloon.open) pm.balloon.open();
     } else if (engine === 'leaflet') {
       map.flyTo(coords, 16, { duration: 0.6 });
-      var m = markerById[p.id];
-      if (m && m.openPopup) m.openPopup();
     }
     var card = document.querySelector('.places-map-card');
     if (card && card.scrollIntoView) {
