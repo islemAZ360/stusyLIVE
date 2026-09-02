@@ -254,6 +254,106 @@
     });
   }
 
+  /* OSM type -> localized category label (free, no API key) */
+  var CATS = {
+    ar: {
+      cafe: 'مقهى', restaurant: 'مطعم', fast_food: 'وجبات سريعة', bar: 'بار', pub: 'حانة',
+      bakery: 'مخبز', supermarket: 'سوبرماركت', convenience: 'بقالة', mall: 'مركز تجاري',
+      pharmacy: 'صيدلية', hospital: 'مستشفى', clinic: 'عيادة', doctors: 'عيادة طبيب', dentist: 'عيادة أسنان',
+      university: 'جامعة', college: 'كلية', school: 'مدرسة', kindergarten: 'روضة أطفال', library: 'مكتبة',
+      museum: 'متحف', theatre: 'مسرح', cinema: 'سينما', arts_centre: 'مركز فنون',
+      hotel: 'فندق', hostel: 'نزل', guest_house: 'بيت ضيافة', fuel: 'محطة وقود', charging_station: 'محطة شحن',
+      parking: 'موقف سيارات', bank: 'بنك', atm: 'صراف آلي', gym: 'نادٍ رياضي', fitness_centre: 'نادٍ رياضي',
+      sports_centre: 'مركز رياضي', stadium: 'ملعب', mosque: 'مسجد', church: 'كنيسة', synagogue: 'كنيس',
+      park: 'حديقة', garden: 'حديقة', playground: 'ملعب أطفال', bus_stop: 'موقف باص', bus_station: 'محطة باص',
+      station: 'محطة', subway: 'مترو', tram_stop: 'موقف ترام', police: 'شرطة', fire_station: 'حماية مدنية',
+      post_office: 'مكتب بريد', hairdresser: 'صالون حلاقة', beauty: 'صالون تجميل', marketplace: 'سوق',
+      attraction: 'معلم سياحي', viewpoint: 'نقطة إطلالة', monument: 'نصب تذكاري', castle: 'قلعة',
+      zoo: 'حديقة حيوان', aquarium: 'أكواريوم', water_park: 'مدينة مائية', nightclub: 'نادٍ ليلي',
+      bookstore: 'مكتبة كتب', car_repair: 'ورشة سيارات', laundry: 'مغسلة', veterinary: 'عيادة بيطرية',
+      townhall: 'بلدية', courthouse: 'محكمة',
+    },
+    ru: {
+      cafe: 'Кафе', restaurant: 'Ресторан', fast_food: 'Фастфуд', bar: 'Бар', pub: 'Паб',
+      bakery: 'Пекарня', supermarket: 'Супермаркет', convenience: 'Магазин', mall: 'Торговый центр',
+      pharmacy: 'Аптека', hospital: 'Больница', clinic: 'Клиника', doctors: 'Врач', dentist: 'Стоматология',
+      university: 'Университет', college: 'Колледж', school: 'Школа', kindergarten: 'Детский сад', library: 'Библиотека',
+      museum: 'Музей', theatre: 'Театр', cinema: 'Кинотеатр', arts_centre: 'Центр искусств',
+      hotel: 'Отель', hostel: 'Хостел', guest_house: 'Гостевой дом', fuel: 'АЗС', charging_station: 'Зарядная станция',
+      parking: 'Парковка', bank: 'Банк', atm: 'Банкомат', gym: 'Спортзал', fitness_centre: 'Спортзал',
+      sports_centre: 'Спортцентр', stadium: 'Стадион', mosque: 'Мечеть', church: 'Церковь', synagogue: 'Синагога',
+      park: 'Парк', garden: 'Сад', playground: 'Детская площадка', bus_stop: 'Остановка', bus_station: 'Автостанция',
+      station: 'Вокзал', subway: 'Метро', tram_stop: 'Трамвайная остановка', police: 'Полиция', fire_station: 'Пожарная часть',
+      post_office: 'Почта', hairdresser: 'Парикмахерская', beauty: 'Салон красоты', marketplace: 'Рынок',
+      attraction: 'Достопримечательность', viewpoint: 'Смотровая площадка', monument: 'Памятник', castle: 'Крепость',
+      zoo: 'Зоопарк', aquarium: 'Океанариум', water_park: 'Аквапарк', nightclub: 'Ночной клуб',
+      bookstore: 'Книжный магазин', car_repair: 'Автосервис', laundry: 'Прачечная', veterinary: 'Ветклиника',
+      townhall: 'Мэрия', courthouse: 'Суд',
+    },
+    en: {
+      cafe: 'Cafe', restaurant: 'Restaurant', fast_food: 'Fast food', bar: 'Bar', pub: 'Pub',
+      bakery: 'Bakery', supermarket: 'Supermarket', convenience: 'Convenience store', mall: 'Shopping mall',
+      pharmacy: 'Pharmacy', hospital: 'Hospital', clinic: 'Clinic', doctors: 'Doctor', dentist: 'Dentist',
+      university: 'University', college: 'College', school: 'School', kindergarten: 'Kindergarten', library: 'Library',
+      museum: 'Museum', theatre: 'Theatre', cinema: 'Cinema', arts_centre: 'Arts centre',
+      hotel: 'Hotel', hostel: 'Hostel', guest_house: 'Guest house', fuel: 'Fuel station', charging_station: 'Charging station',
+      parking: 'Parking', bank: 'Bank', atm: 'ATM', gym: 'Gym', fitness_centre: 'Gym',
+      sports_centre: 'Sports centre', stadium: 'Stadium', mosque: 'Mosque', church: 'Church', synagogue: 'Synagogue',
+      park: 'Park', garden: 'Garden', playground: 'Playground', bus_stop: 'Bus stop', bus_station: 'Bus station',
+      station: 'Station', subway: 'Metro', tram_stop: 'Tram stop', police: 'Police', fire_station: 'Fire station',
+      post_office: 'Post office', hairdresser: 'Hairdresser', beauty: 'Beauty salon', marketplace: 'Market',
+      attraction: 'Attraction', viewpoint: 'Viewpoint', monument: 'Monument', castle: 'Castle',
+      zoo: 'Zoo', aquarium: 'Aquarium', water_park: 'Water park', nightclub: 'Nightclub',
+      bookstore: 'Bookstore', car_repair: 'Car repair', laundry: 'Laundry', veterinary: 'Veterinary',
+      townhall: 'Town hall', courthouse: 'Courthouse',
+    },
+  };
+
+  function catLabel(type) {
+    var d = CATS[SL.i18n.lang] || CATS.en;
+    if (d[type]) return d[type];
+    return String(type).replace(/_/g, ' ');
+  }
+
+  var geoCache = {};
+
+  /* Nominatim reverse: name / address / opening_hours / phone / website */
+  function reverseGeocode(c) {
+    var key = c.lat.toFixed(4) + ',' + c.lng.toFixed(4);
+    if (geoCache[key]) return Promise.resolve(geoCache[key]);
+    var url =
+      'https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18' +
+      '&addressdetails=1&extratags=1' +
+      '&accept-language=' + encodeURIComponent(SL.i18n.lang || 'en') +
+      '&lat=' + c.lat + '&lon=' + c.lng;
+    return fetch(url)
+      .then(function (r) { if (!r.ok) throw new Error('http'); return r.json(); })
+      .then(function (d) { geoCache[key] = d; return d; });
+  }
+
+  /* Wikimedia Commons geosearch: nearby photos (free, CORS ok) */
+  function commonsPhotos(c) {
+    var url =
+      'https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*' +
+      '&generator=geosearch&ggsradius=100&ggslimit=12' +
+      '&prop=imageinfo&iiprop=url&iiurlwidth=360' +
+      '&ggscoord=' + encodeURIComponent(c.lat + '|' + c.lng);
+    return fetch(url)
+      .then(function (r) { if (!r.ok) throw new Error('http'); return r.json(); })
+      .then(function (d) {
+        var pages = d && d.query && d.query.pages ? d.query.pages : {};
+        var out = [];
+        Object.keys(pages).forEach(function (k) {
+          var info = pages[k].imageinfo && pages[k].imageinfo[0];
+          if (info && info.thumburl && /\.(jpe?g|png)$/i.test(info.thumburl)) {
+            out.push({ thumb: info.thumburl, full: info.url || info.thumburl });
+          }
+        });
+        return out.slice(0, 8);
+      })
+      .catch(function () { return []; });
+  }
+
   /* Tile providers, tried in order: a dark theme first (matches the
      app), then classic OSM raster. If every provider fails (blocked
      network, aggressive ad-blocker...) we show an explicit error card
@@ -425,7 +525,111 @@
   function handleMapPick(c) {
     if (!c) return;
     showPickMarker(c);
-    openPlaceForm(null, c);
+    showMapPlaceDetails(c);
+  }
+
+  var detailsSeq = 0;
+
+  /* Tap anywhere on the map -> sheet with REAL place info:
+     name, category, address, hours, phone, website, nearby photos,
+     then optional "save to my places". */
+  function showMapPlaceDetails(c) {
+    var body = document.createElement('div');
+    body.className = 'sheet-form place-details';
+    body.innerHTML =
+      '<div class="place-loading">' + u.esc(t('pl.loadingDetails')) + '</div>';
+
+    function render(data, photos) {
+      if (sheet.closed) return;
+      var extra = (data && data.extratags) || {};
+      var name = (data && data.name) || '';
+      var cat = data && data.type ? catLabel(data.type) : '';
+      var a = (data && data.address) || {};
+      var addr = [a.road, a.house_number, a.neighbourhood, a.suburb,
+        a.city || a.town || a.village, a.postcode].filter(Boolean).join(', ');
+      var esc = u.esc;
+
+      if (name) {
+        body.innerHTML =
+          '<div class="place-details-head">' +
+          '<span class="place-dot" style="--c:var(--accent)"></span>' +
+          '<span class="place-details-name">' + esc(name) + '</span></div>' +
+          (cat ? '<div class="place-poi-cat">' + esc(cat) + '</div>' : '');
+      } else {
+        body.innerHTML =
+          '<div class="place-details-head">' +
+          '<span class="place-dot" style="--c:var(--accent)"></span>' +
+          '<span class="place-details-name" dir="ltr">' + fmt(c) + '</span></div>' +
+          '<div class="place-poi-note">' + esc(t('pl.noDetails')) + '</div>';
+      }
+
+      var rows = '';
+      function addRow(label, valueHtml, href) {
+        rows += href
+          ? '<a class="place-poi-row" href="' + href + '"' +
+            (href.indexOf('tel:') === 0 ? '' : ' target="_blank" rel="noopener"') +
+            '><span class="lbl">' + esc(label) + '</span><span class="val">' + valueHtml + '</span></a>'
+          : '<div class="place-poi-row"><span class="lbl">' + esc(label) +
+            '</span><span class="val">' + valueHtml + '</span></div>';
+      }
+      if (addr) addRow(t('pl.addr'), esc(addr));
+      if (extra.opening_hours) addRow(t('pl.hours'), esc(extra.opening_hours));
+      var phone = extra.phone || extra['contact:phone'];
+      if (phone) addRow(t('pl.phone'), esc(phone), 'tel:' + esc(String(phone).replace(/[^\d+]/g, '')));
+      var web = extra.website || extra['contact:website'];
+      if (web) {
+        addRow(t('pl.web'),
+          esc(String(web).replace(/^https?:\/\//, '').replace(/\/$/, '')),
+          esc(String(web)));
+      }
+      if (rows) body.innerHTML += '<div class="place-poi-rows">' + rows + '</div>';
+
+      body.innerHTML += photos.length
+        ? '<div class="place-poi-photos">' +
+          photos.map(function (ph) {
+            return '<img class="place-poi-photo" src="' + esc(ph.thumb) +
+              '" alt="" loading="lazy" data-full="' + esc(ph.full) + '">';
+          }).join('') + '</div>'
+        : '<div class="place-poi-note">' + esc(t('pl.noPhotos')) + '</div>';
+
+      body.innerHTML +=
+        '<div class="sheet-actions place-details-actions">' +
+        '<button class="btn btn-primary" data-act="save" type="button">' +
+        u.esc(t('pl.saveMyPlaces')) + '</button>' +
+        '<button class="btn btn-ghost" data-act="copy" type="button">' +
+        u.esc(t('pl.copyCoords')) + '</button>' +
+        '<button class="btn btn-ghost" data-act="ext" type="button">' +
+        u.esc(t('pl.openExt')) + '</button></div>';
+
+      body.querySelector('[data-act="save"]').addEventListener('click', function () {
+        sheet.close();
+        openPlaceForm(null, { lat: c.lat, lng: c.lng, name: name, desc: cat });
+      });
+      body.querySelector('[data-act="copy"]').addEventListener('click', function () {
+        copyText(fmt(c), function (ok) {
+          if (ok) SL.ui.toast(t('pl.copied'));
+          else SL.ui.toast(fmt(c));
+        });
+      });
+      body.querySelector('[data-act="ext"]').addEventListener('click', function () {
+        window.open(externalUrl(c), '_blank', 'noopener');
+      });
+      body.querySelectorAll('.place-poi-photo').forEach(function (img) {
+        img.addEventListener('click', function () {
+          window.open(img.getAttribute('data-full'), '_blank', 'noopener');
+        });
+      });
+    }
+
+    var seq = ++detailsSeq;
+    var sheet = SL.ui.openSheet({ title: t('pl.details'), body: body });
+    Promise.all([
+      reverseGeocode(c).catch(function () { return null; }),
+      commonsPhotos(c),
+    ]).then(function (res) {
+      if (seq !== detailsSeq || sheet.closed) return;
+      render(res[0], res[1]);
+    });
   }
 
   /* ---------- my location on the map ---------- */
@@ -533,8 +737,8 @@
   function openPlaceForm(existing, pick) {
     var isEdit = !!existing;
     var p = existing || {
-      name: '',
-      desc: '',
+      name: (pick && pick.name) || '',
+      desc: (pick && pick.desc) || '',
       lat: pick ? +pick.lat.toFixed(6) : '',
       lng: pick ? +pick.lng.toFixed(6) : '',
       color: '#33589e',
