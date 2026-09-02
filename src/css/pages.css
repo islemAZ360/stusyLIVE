@@ -2038,6 +2038,33 @@
   animation: pl-locate-spin 1s linear infinite;
 }
 
+/* ---- "tap the map to pick a place" hint chip ---- */
+
+.places-map-hint {
+  position: absolute;
+  top: 10px;
+  inset-inline-start: 10px;
+  z-index: 460; /* above map panes and controls */
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: calc(100% - 20px);
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(23, 20, 13, 0.85);
+  color: #f7f2e9;
+  font-size: 12px;
+  line-height: 1.3;
+  pointer-events: none; /* never blocks map clicks */
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.places-map-hint svg {
+  flex: none;
+  opacity: 0.9;
+}
+
 @keyframes pl-locate-spin {
   to {
     transform: rotate(360deg);

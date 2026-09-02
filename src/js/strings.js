@@ -180,6 +180,8 @@
   'pl.locate': 'إظهار موقعي على الخريطة',
   'pl.locating': 'جارٍ تحديد موقعك…',
   'pl.located': 'أنت هنا',
+  'pl.mapPickHint': 'انقر على الخريطة لاختيار مكان',
+  'pl.picked': 'الموقع المحدد',
       'pl.deleteQ': 'حذف "{name}" نهائياً؟',
 
       'th.title': 'الأساتذة والتقييمات',
@@ -602,6 +604,8 @@
   'pl.locate': 'Показать моё местоположение на карте',
   'pl.locating': 'Определяем ваше местоположение…',
   'pl.located': 'Вы здесь',
+  'pl.mapPickHint': 'Нажмите на карту, чтобы выбрать место',
+  'pl.picked': 'Выбранная точка',
       'pl.deleteQ': 'Удалить «{name}» навсегда?',
 
       'th.title': 'Преподаватели и оценки',
@@ -1021,6 +1025,8 @@
   'pl.locate': 'Show my location on the map',
   'pl.locating': 'Locating you…',
   'pl.located': 'You are here',
+  'pl.mapPickHint': 'Tap the map to pick a place',
+  'pl.picked': 'Picked point',
       'pl.deleteQ': 'Delete "{name}" permanently?',
 
       'th.title': 'Teachers & reviews',

@@ -128,6 +128,7 @@
   function destroyMap() {
     markerById = {};
     userMarker = null;
+    pickMarker = null;
     if (!map) return;
     try {
       if (engine === 'yandex' && map.destroy) map.destroy();
@@ -182,6 +183,13 @@
       { center: centerOf(places), zoom: zoomFor(places), controls: ['zoomControl'] },
       { suppressMapOpenBlock: true }
     );
+
+    // click on empty map -> pick a new place (ignore clicks on markers/balloons)
+    map.events.add('click', function (e) {
+      if (!map || e.get('target') !== map) return;
+      var coords = e.get('coords');
+      if (coords) handleMapPick({ lat: coords[0], lng: coords[1] });
+    });
 
     places.forEach(function (p) {
       var pm = new ymaps.Placemark(
@@ -288,6 +296,11 @@
     engine = 'leaflet';
     map = L.map(container, { zoomControl: true }).setView(centerOf(places), zoomFor(places));
 
+    // click on empty map -> pick a new place (markers stop propagation)
+    map.on('click', function (e) {
+      handleMapPick({ lat: e.latlng.lat, lng: e.latlng.lng });
+    });
+
     addTilesWithFallback(function () {
       destroyMap();
       showMapError(container);
@@ -334,6 +347,55 @@
     if (card && card.scrollIntoView) {
       card.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+  }
+
+  /* ---------- pick a spot by clicking the map ---------- */
+
+  var pickMarker = null; // temporary marker for a clicked (not yet saved) spot
+
+  function clearPickMarker() {
+    if (!pickMarker || !map) return;
+    try {
+      if (engine === 'yandex') map.geoObjects.remove(pickMarker);
+      else if (map.removeLayer) map.removeLayer(pickMarker);
+    } catch (e) {}
+    pickMarker = null;
+  }
+
+  function showPickMarker(c) {
+    if (!map) return;
+    clearPickMarker();
+    try {
+      if (engine === 'yandex' && root.ymaps) {
+        pickMarker = new root.ymaps.Placemark(
+          [c.lat, c.lng],
+          { balloonContentBody: '<span dir="ltr">' + fmt(c) + '</span>' },
+          { preset: 'islands#yellowDotIcon', iconColor: '#f5a623' }
+        );
+        map.geoObjects.add(pickMarker);
+        map.panTo([c.lat, c.lng]);
+      } else if (engine === 'leaflet' && root.L) {
+        pickMarker = L.circleMarker([c.lat, c.lng], {
+          radius: 9,
+          fillColor: '#f5a623',
+          color: '#fff',
+          weight: 2,
+          opacity: 1,
+          fillOpacity: 1,
+        }).addTo(map);
+        pickMarker
+          .bindPopup(
+            '<b>' + u.esc(t('pl.picked')) + '</b><br><span dir="ltr">' + fmt(c) + '</span>'
+          )
+          .openPopup();
+      }
+    } catch (e) {}
+  }
+
+  function handleMapPick(c) {
+    if (!c) return;
+    showPickMarker(c);
+    openPlaceForm(null, c);
   }
 
   /* ---------- my location on the map ---------- */
@@ -438,9 +500,15 @@
     });
   }
 
-  function openPlaceForm(existing) {
+  function openPlaceForm(existing, pick) {
     var isEdit = !!existing;
-    var p = existing || { name: '', desc: '', lat: '', lng: '', color: '#33589e' };
+    var p = existing || {
+      name: '',
+      desc: '',
+      lat: pick ? +pick.lat.toFixed(6) : '',
+      lng: pick ? +pick.lng.toFixed(6) : '',
+      color: '#33589e',
+    };
 
     var PALETTE = [
       '#33589e', '#7b4bc9', '#00838f', '#2e7d32',
@@ -660,8 +728,10 @@
       title: t(isEdit ? 'pl.editTitle' : 'pl.add'),
       body: body,
       autofocus: false,
+      onClose: clearPickMarker, // drop the orange pin if the form is dismissed
     });
-    searchInput.focus();
+    if (pick) nameInput.focus();
+    else searchInput.focus();
   }
 
   /* ---------- delete ---------- */
@@ -786,6 +856,8 @@
         '<button id="pl-locate" class="places-locate-btn" type="button" title="' +
         u.esc(t('pl.locate')) + '" aria-label="' + u.esc(t('pl.locate')) + '">' +
         SL.ui.icon('navigate', 20) + '</button>' +
+        '<div class="places-map-hint">' + SL.ui.icon('mapPin', 14) +
+        '<span>' + u.esc(t('pl.mapPickHint')) + '</span></div>' +
         '</div>' +
         '<div class="places-toolbar"><div class="places-search">' +
         SL.ui.icon('search', 18) +
