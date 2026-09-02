@@ -5,8 +5,7 @@
 
 -- profiles
 create table if not exists public.profiles (
-  id uuid primary key references auth.users (id) on delete cascade,
-  user_id uuid not null unique references auth.users (id) on delete cascade,
+  user_id uuid primary key references auth.users (id) on delete cascade,
   email text, full_name text, avatar_url text,
   degree text, specialty text,
   group_name text,
@@ -51,9 +50,11 @@ create table if not exists public.subjects (
   user_id uuid not null references auth.users (id) on delete cascade,
   name text not null,
   color text,
+  semester_id text,
   semester_label text,
   teacher_name text,
   teacher_id text,
+  standing integer,
   created_at timestamptz default now()
 );
 
@@ -66,6 +67,7 @@ create table if not exists public.tasks (
   difficulty text,
   subject_id text,
   done boolean default false,
+  progress_enabled boolean default false,
   progress integer default 0,
   created_at timestamptz default now()
 );

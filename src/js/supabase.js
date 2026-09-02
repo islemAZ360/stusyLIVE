@@ -122,17 +122,34 @@ import { createClient } from '@supabase/supabase-js';
 
   // Field mapping for ALL tables (local → DB)
   var FIELD_MAP = {
-    subjects: { semesterLabel: 'semester_label', teacherName: 'teacher_name' },
-    tasks: { subjectId: 'subject_id' },
+    subjects: { semesterId: 'semester_id', semesterLabel: 'semester_label', teacherName: 'teacher_name', teacherId: 'teacher_id' },
+    tasks: { subjectId: 'subject_id', progressEnabled: 'progress_enabled' },
     notes: { text: 'body', subjectId: 'subject_id' },
-    teachers: { subjectName: 'subject_name' },
+    teachers: { subjectId: 'subject_id', subjectName: 'subject_name' },
     contacts: {},
     places: {},
-    profiles: {},
+    profiles: { group: 'group_name' },
     academic_structures: {},
     standing_logs: { subjectId: 'subject_id' },
     vault_entries: {},
     app_settings: {},
+  };
+
+  // Exact DB column whitelist per table (beyond id/user_id/created_at/updated_at).
+  // Anything not listed here is stripped before sending — protects upserts
+  // from failing on local-only runtime fields (createdAt, at, ...).
+  var DB_COLUMNS = {
+    subjects: ['name', 'color', 'semester_id', 'semester_label', 'teacher_name', 'teacher_id', 'standing'],
+    tasks: ['title', 'description', 'date', 'difficulty', 'subject_id', 'done', 'progress_enabled', 'progress'],
+    notes: ['title', 'body', 'subject_id', 'images', 'pinned'],
+    teachers: ['name', 'subject_id', 'subject_name', 'photo', 'ratings'],
+    contacts: ['name', 'category', 'org', 'phones', 'emails', 'photo', 'note'],
+    places: ['name', 'descr', 'lat', 'lng', 'color'],
+    profiles: ['email', 'full_name', 'avatar_url', 'degree', 'specialty', 'group_name'],
+    standing_logs: ['subject_id', 'value', 'date'],
+    vault_entries: ['title', 'username', 'url', 'password', 'description'],
+    academic_structures: [],
+    app_settings: [],
   };
 
   var REV_MAP = {};
@@ -144,13 +161,25 @@ import { createClient } from '@supabase/supabase-js';
   });
 
   function mapRow(table, item, direction) {
-    var map = direction === 'toDb' ? (FIELD_MAP[table] || {}) : (REV_MAP[table] || {});
+    if (direction === 'toDb') {
+      var map = FIELD_MAP[table] || {};
+      var allowed = DB_COLUMNS[table];
+      var out = {};
+      Object.keys(item).forEach(function (k) {
+        var key = map[k] || k;
+        // user_id is set explicitly by callers; unknown fields are stripped
+        if (key === 'user_id') return;
+        if (allowed && allowed.indexOf(key) === -1) return;
+        out[key] = item[k];
+      });
+      return out;
+    }
+    var rev = REV_MAP[table] || {};
     var row = Object.assign({}, item);
-    Object.keys(map).forEach(function (fromKey) {
-      var toKey = map[fromKey];
-      if (row[fromKey] !== undefined) {
-        row[toKey] = row[fromKey];
-        delete row[fromKey];
+    Object.keys(rev).forEach(function (dbKey) {
+      if (row[dbKey] !== undefined) {
+        row[rev[dbKey]] = row[dbKey];
+        delete row[dbKey];
       }
     });
     return row;
@@ -220,20 +249,26 @@ import { createClient } from '@supabase/supabase-js';
   }
 
   // Push ALL user data (profile, academic, standing log, vault, settings)
+  // plus every regular table (subjects/tasks/notes/teachers/contacts/places)
+  // via the hash-deduped, rate-limit-safe request queue.
   function pushAllUserData() {
     var c = ensure();
     if (!c || !currentUser) return Promise.resolve({ skipped: true });
     var st = SL.store.get();
     var jobs = [];
 
+    // Regular array tables (each call is hash-deduped — no-op when unchanged)
+    ['subjects', 'tasks', 'notes', 'teachers', 'contacts', 'places'].forEach(function (t) {
+      jobs.push(pushTable(t));
+    });
+
     // Profile
     var profileHash = JSON.stringify(st.profile || {});
     if (lastSyncedHash['profiles'] !== profileHash) {
-      var profileRow = Object.assign({}, st.profile, {
-        user_id: currentUser.id,
-        email: currentUser.email,
-        updated_at: nowISO(),
-      });
+      var profileRow = mapRow('profiles', Object.assign({}, st.profile), 'toDb');
+      profileRow.user_id = currentUser.id;
+      profileRow.email = currentUser.email;
+      profileRow.updated_at = nowISO();
       jobs.push(enqueueRequest(function () {
         return c.from('profiles').upsert(profileRow, { onConflict: 'user_id' }).then(function(r){ 
           if(!r.error) lastSyncedHash['profiles'] = profileHash; 
@@ -319,14 +354,8 @@ import { createClient } from '@supabase/supabase-js';
   }
 
   function syncToCloud() {
-    var c = ensure();
-    if (!c || !currentUser) return Promise.resolve({ skipped: true });
-    var tables = ['subjects', 'tasks', 'notes', 'teachers', 'contacts', 'places'];
-    var jobs = tables.map(pushTable);
-    jobs.push(pushAllUserData());
-    return Promise.all(jobs).then(function (results) {
-      return { ok: true, results: results };
-    });
+    // syncToCloud and pushAllUserData are now the same full-delta push
+    return pushAllUserData();
   }
 
   function syncFromCloud() {

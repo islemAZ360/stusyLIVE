@@ -174,7 +174,7 @@
 
   var cloudSyncDebounced = u.debounce(function () {
     if (SL.supabase && SL.supabase.isConnected()) {
-      SL.supabase.syncToCloud().catch(function () {});
+      SL.supabase.pushAllUserData().catch(function () {});
     }
   }, 3500);
 
