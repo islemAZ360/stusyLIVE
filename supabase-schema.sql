@@ -3,6 +3,24 @@
 -- Run this ONCE in: Supabase Dashboard → SQL Editor → New Query
 -- ============================================================
 
+-- ------------------------------------------------------------
+-- RESET: drop old app tables from previous schema versions.
+-- ⚠️ This erases any existing cloud data for these tables.
+-- It is safe NOW because cloud sync has never run yet.
+-- (Remove this block before re-running later, once data exists!)
+-- ------------------------------------------------------------
+drop table if exists public.profiles cascade;
+drop table if exists public.app_settings cascade;
+drop table if exists public.academic_structures cascade;
+drop table if exists public.standing_logs cascade;
+drop table if exists public.vault_entries cascade;
+drop table if exists public.subjects cascade;
+drop table if exists public.tasks cascade;
+drop table if exists public.notes cascade;
+drop table if exists public.teachers cascade;
+drop table if exists public.contacts cascade;
+drop table if exists public.places cascade;
+
 -- profiles
 create table if not exists public.profiles (
   user_id uuid primary key references auth.users (id) on delete cascade,
