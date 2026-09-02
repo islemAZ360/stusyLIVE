@@ -394,6 +394,10 @@
       'cloud.loginHint': 'ادخل بحساب جوجل لمزامنة بياناتك وحفظها في السحابة.',
       'cloud.loginBtn': 'الدخول بحساب جوجل',
       'cloud.loginError': 'فشل تسجيل الدخول — حاول مرة أخرى',
+      'auth.subtitle': 'سجّل دخولك لحفظ بياناتك ومزامنتها عبر أجهزتك',
+      'auth.signIn': 'المتابعة بحساب جوجل',
+      'auth.hint': 'بياناتك محفوظة بأمان في حسابك — لن تُفقد أبداً',
+      'auth.fail': 'فشل تسجيل الدخول — حاول مرة أخرى',
 
       /* Motivational messages */
       'mo.great': 'أحسنت! أنت على المسار الصحيح 🎓',
@@ -810,6 +814,10 @@
       'cloud.loginHint': 'Войдите через Google, чтобы синхронизировать данные.',
       'cloud.loginBtn': 'Войти через Google',
       'cloud.loginError': 'Ошибка входа — попробуйте снова',
+      'auth.subtitle': 'Войдите, чтобы сохранить данные и синхронизировать их между устройствами',
+      'auth.signIn': 'Продолжить через Google',
+      'auth.hint': 'Ваши данные надёжно хранятся в вашем аккаунте — они не потеряются',
+      'auth.fail': 'Ошибка входа — попробуйте снова',
 
       /* Motivational messages */
       'mo.great': 'Отлично! Вы на правильном пути 🎓',
@@ -1225,6 +1233,10 @@
       'cloud.loginHint': 'Sign in with Google to sync and back up your data.',
       'cloud.loginBtn': 'Sign in with Google',
       'cloud.loginError': 'Sign-in failed — try again',
+      'auth.subtitle': 'Sign in to back up your data and sync it across devices',
+      'auth.signIn': 'Continue with Google',
+      'auth.hint': 'Your data is safely stored in your account — it will never be lost',
+      'auth.fail': 'Sign-in failed — please try again',
 
       /* Motivational messages */
       'mo.great': "Great job! You're on track 🎓",

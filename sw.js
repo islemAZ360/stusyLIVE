@@ -5,7 +5,7 @@
    the bug that made updates invisible in the browser)
    Bump CACHE version when shipping changed assets.
    ============================================================ */
-var CACHE = 'study-live-v25';
+var CACHE = 'study-live-v26';
 
 self.addEventListener('install', function (event) {
   // no precache list: assets are cached at runtime, so a deploy

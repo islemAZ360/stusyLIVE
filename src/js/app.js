@@ -219,13 +219,34 @@
     }
   }
 
-  /* ---------- boot ---------- */
+  /* ---------- auth gate ---------- */
 
-  function boot() {
-    applyTheme(currentTheme());
-    SL.i18n.init();
-    applyTheme(currentTheme()); // theme may follow system before user choice
+  function showAuthGate() {
+    var overlay = document.createElement('div');
+    overlay.className = 'auth-gate';
+    overlay.innerHTML =
+      '<div class="auth-gate-card">' +
+      '<div class="auth-gate-logo">' + SL.ui.icon('logo', 48) + '</div>' +
+      '<h1 class="auth-gate-title">Study Live</h1>' +
+      '<p class="auth-gate-sub">' + SL.i18n.t('auth.subtitle') + '</p>' +
+      '<button class="btn btn-primary auth-gate-btn" id="authGoogleBtn">' +
+      '<svg viewBox="0 0 24 24" width="18" height="18" style="margin-inline-end:8px;flex:none"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>' +
+      SL.i18n.t('auth.signIn') + '</button>' +
+      '<p class="auth-gate-hint">' + SL.i18n.t('auth.hint') + '</p>' +
+      '</div>';
+    document.body.appendChild(overlay);
 
+    var btn = document.getElementById('authGoogleBtn');
+    if (btn) {
+      btn.addEventListener('click', function () {
+        SL.supabase.signInWithGoogle().catch(function () {
+          SL.ui.toast(SL.i18n.t('auth.fail'), 'error');
+        });
+      });
+    }
+  }
+
+  function startApp() {
     SL.router.init(u.$('.main'), u.$('.bottom-nav'));
     // First 4 are primary, rest are secondary (hub menu)
     SL.router.register([
@@ -295,6 +316,48 @@
     root.addEventListener('pagehide', function () {
       SL.store.saveNow();
     });
+  }
+
+  /* ---------- boot ---------- */
+
+  function boot() {
+    applyTheme(currentTheme());
+    SL.i18n.init();
+    applyTheme(currentTheme()); // theme may follow system before user choice
+
+    // Auth gate: when the cloud is configured, require a signed-in user
+    // before the app (and its data) becomes reachable.
+    if (SL.supabase && SL.supabase.ENABLED) {
+      var opened = false;
+      var tryStart = function () {
+        if (opened) return;
+        opened = true;
+        startApp();
+      };
+      SL.supabase.getSession().then(function (session) {
+        if (session) {
+          tryStart();
+        } else {
+          showAuthGate();
+          SL.supabase.onAuthChange(function (event, user) {
+            if (event === 'SIGNED_OUT') {
+              if (!document.querySelector('.auth-gate')) root.location.reload();
+              return;
+            }
+            if (user) {
+              var gate = document.querySelector('.auth-gate');
+              if (gate) gate.remove();
+              tryStart();
+            }
+          });
+        }
+      }).catch(function () {
+        showAuthGate();
+      });
+      return;
+    }
+
+    startApp();
   }
 
   if (document.readyState === 'loading') {

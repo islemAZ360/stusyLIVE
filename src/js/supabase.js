@@ -69,7 +69,7 @@ import { createClient } from '@supabase/supabase-js';
     if (!c || !currentUser) return Promise.reject(new Error('Not authenticated'));
     var uid = currentUser.id;
     // Delete all user data from tables (RLS ensures only own data is deleted)
-    var tables = ['notes', 'tasks', 'subjects', 'teachers', 'contacts', 'places', 'profiles', 'academic_structures', 'standing_logs', 'vault_entries'];
+    var tables = ['notes', 'tasks', 'subjects', 'teachers', 'contacts', 'places', 'profiles', 'academic_structures', 'standing_logs', 'vault_entries', 'app_settings'];
     var jobs = tables.map(function (table) {
       return c.from(table).delete().eq('user_id', uid).then(function () {
         return { table: table, ok: true };
