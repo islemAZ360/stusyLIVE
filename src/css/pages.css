@@ -1363,8 +1363,241 @@
   width: 100%;
 }
 
-/* ================= Statistics (V4) ================= */
+/* ================= Statistics (V5 - Smart Analytics & AI Coach) ================= */
 
+.stats-body-wrap {
+  padding-bottom: 48px;
+}
+
+/* 4-KPI Grid */
+.stats-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+@media (min-width: 640px) {
+  .stats-kpi-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.stats-kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--shadow-sm);
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  min-height: 104px;
+}
+
+.stats-kpi-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+}
+
+.kpi-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.kpi-label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kpi-icon-pill {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.kpi-icon-pill.p-blue {
+  background: rgba(56, 189, 248, 0.14);
+  color: #38bdf8;
+}
+
+.kpi-icon-pill.p-fire {
+  background: rgba(249, 115, 22, 0.14);
+}
+
+.kpi-icon-pill.p-purple {
+  background: rgba(168, 85, 247, 0.14);
+  color: #c084fc;
+}
+
+.kpi-icon-pill.p-gold {
+  background: rgba(234, 179, 8, 0.14);
+  color: #eab308;
+}
+
+.kpi-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 4px;
+}
+
+.kpi-value.kpi-streak {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.kpi-value.standing-good {
+  color: var(--success);
+}
+
+.kpi-value.standing-mid {
+  color: var(--warn);
+}
+
+.kpi-value.standing-bad {
+  color: var(--danger);
+}
+
+.kpi-sub {
+  font-size: 11px;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* AI Coaching & Smart Insights Card */
+.stats-insight-card {
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.06), rgba(99, 102, 241, 0.05)), var(--surface);
+  border: 1px solid rgba(234, 179, 8, 0.28);
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+}
+
+.stats-insight-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  background: linear-gradient(90deg, #eab308, #f59e0b, #6366f1);
+}
+
+.insight-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.insight-glow-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(234, 179, 8, 0.15);
+  color: #f59e0b;
+  box-shadow: 0 0 16px rgba(234, 179, 8, 0.25);
+  flex-shrink: 0;
+}
+
+.insight-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+
+.insight-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.insight-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  line-height: 1.45;
+  background: var(--surface-2);
+  border-left: 3px solid var(--accent);
+}
+
+[dir='rtl'] .insight-item {
+  border-left: none;
+  border-right: 3px solid var(--accent);
+}
+
+.insight-item.insight-alert {
+  border-color: var(--danger);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.insight-item.insight-challenge {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.insight-item.insight-info {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.insight-item.insight-boost {
+  border-color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.08);
+}
+
+.insight-item.insight-celebrate {
+  border-color: var(--success);
+  background: rgba(34, 197, 94, 0.08);
+}
+
+.insight-item-icon {
+  font-size: 15px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.insight-item-text {
+  flex: 1;
+  color: var(--ink);
+}
+
+/* Ratio Donut & Workload */
 .ratio-wrap {
   display: flex;
   align-items: center;
@@ -1442,13 +1675,93 @@
 
 .legend-total {
   color: var(--ink-muted);
-  font-size: 12px;
+  font-size: 12.5px;
   border-top: 1px dashed var(--border);
   padding-top: 8px;
 }
 
-.legend-total span:first-child {
-  width: 10px;
+/* Workload breakdown in completion card */
+.workload-breakdown {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border);
+}
+
+.workload-bar {
+  display: flex;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--surface-2);
+  margin-bottom: 10px;
+  gap: 2px;
+}
+
+.wb-segment {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 300ms ease;
+}
+
+.wb-segment.wb-light {
+  background: var(--success);
+}
+
+.wb-segment.wb-easy {
+  background: var(--warn);
+}
+
+.wb-segment.wb-hard {
+  background: var(--danger);
+}
+
+.workload-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 11.5px;
+}
+
+.wchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-muted);
+}
+
+.wchip .wdot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.wchip.wc-light .wdot {
+  background: var(--success);
+}
+
+.wchip.wc-easy .wdot {
+  background: var(--warn);
+}
+
+.wchip.wc-hard .wdot {
+  background: var(--danger);
+}
+
+.wchip b {
+  color: var(--ink);
+}
+
+/* Informative card when no dated tasks for Busiest Days */
+.bday-empty-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 22px 16px;
+  text-align: center;
+  color: var(--ink-muted);
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .bar-list {
@@ -1564,21 +1877,40 @@
 .standing-row input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 21px;
-  height: 21px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  background: var(--surface);
-  border: 3px solid var(--ink);
-  box-shadow: var(--shadow-1);
+  background: #ffffff;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.45);
+  cursor: grab;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.standing-row input[type='range']::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.6);
+}
+
+.standing-row input[type='range']::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.05);
 }
 
 .standing-row input[type='range']::-moz-range-thumb {
-  width: 15px;
-  height: 15px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  background: var(--surface);
-  border: 3px solid var(--ink);
-  box-shadow: var(--shadow-1);
+  background: #ffffff;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.45);
+  cursor: grab;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.standing-row input[type='range']::-moz-range-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.6);
 }
 
 .standing-row input[type='range']::-moz-range-track {
