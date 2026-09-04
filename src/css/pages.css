@@ -1756,15 +1756,27 @@
   color: var(--accent);
 }
 
-/* centered empty state (stats page body host) */
+/* centered empty state (stats page body host).
+   NOTE: must be a COLUMN — this host also carries the standing +
+   hardest sections when subjects exist; a default row flex would
+   squeeze every section title/card into overlapping columns. */
 .empty-center {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* "No tasks yet" block shown above other sections (subjects exist) */
+.empty.empty-in-flow {
+  padding: 28px 20px;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  width: 100%;
 }
 
 @media (min-width: 768px) and (min-height: 640px) {
   .empty-center {
-    align-items: flex-start;
     padding-block: 8vh;
   }
 

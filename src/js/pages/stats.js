@@ -212,12 +212,22 @@
       '<div data-host="body"></div>';
 
     var body = root2.querySelector('[data-host="body"]');
+    /* Only centre the body when the empty state is the ONLY content
+       (no tasks AND no subjects). When subjects exist, the standing +
+       hardest sections follow in normal flow — a flex row here would
+       squeeze every title/card into overlapping narrow columns. */
+    var bodyIsJustEmpty = !agg.total && !subjectsExist;
+    if (bodyIsJustEmpty) {
+      body.classList.add('empty-center');
+    } else {
+      body.classList.remove('empty-center');
+    }
+
     var html = '';
 
     if (!agg.total) {
-      body.classList.add('empty-center');
       html +=
-        '<div class="empty">' +
+        '<div class="empty' + (bodyIsJustEmpty ? '' : ' empty-in-flow') + '">' +
         icon('chart', 40) +
         '<div class="e-title">' + u.esc(t('sh.noTasks')) + '</div>' +
         '<div class="e-hint">' + u.esc(t('sh.noTasksHint')) + '</div>' +
@@ -225,7 +235,6 @@
         icon('tasks', 17) + u.esc(t('nav.tasks')) + '</button>' +
         '</div>';
     } else {
-      body.classList.remove('empty-center');
       var pct = Math.round((agg.done / agg.total) * 100);
       var motivKey = 'mo.statsLow';
       if (pct >= 90) motivKey = 'mo.statsHigh';
