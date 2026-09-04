@@ -30,23 +30,30 @@
     var header = u.$('.header');
     header.innerHTML =
       '<span class="brand">' +
-      SL.ui.icon('logo', 24) +
-      '<span class="name">Study Live</span></span>' +
+      '<span class="brand-crest">' + SL.ui.icon('logo', 20) + '</span>' +
+      '<span class="brand-titles">' +
+      '<span class="name">Study Live</span>' +
+      '<span class="brand-tag" data-host="brandtag">🎓 ' + (SL.i18n.lang === 'ar' ? 'منصة الطالب' : SL.i18n.lang === 'ru' ? 'Студент' : 'Student') + '</span>' +
+      '</span></span>' +
       '<button class="icon-btn pill-btn" data-act="lang" aria-haspopup="menu">' +
-      SL.ui.icon('globe', 18) +
+      SL.ui.icon('globe', 17) +
       '<span class="icon-label" data-host="langname"></span></button>' +
       '<button class="icon-btn pill-btn" data-act="theme" aria-label="' + SL.i18n.t('hdr.theme') + '" data-host="themebtn"></button>' +
       '<div class="lang-menu" role="menu" data-host="langmenu"></div>';
 
     var menu = header.querySelector('[data-host="langmenu"]');
     var themeBtn = header.querySelector('[data-host="themebtn"]');
+    var brandTag = header.querySelector('[data-host="brandtag"]');
 
     function renderHeaderBits() {
       var lang = SL.LANGS.filter(function (l) {
         return l.code === SL.i18n.lang;
       })[0];
       header.querySelector('[data-host="langname"]').textContent = lang ? lang.code.toUpperCase() : '';
-      themeBtn.innerHTML = SL.ui.icon(SL.store.get().settings.theme === 'dark' ? 'sun' : 'moon', 18);
+      themeBtn.innerHTML = SL.ui.icon(SL.store.get().settings.theme === 'dark' ? 'sun' : 'moon', 17);
+      if (brandTag) {
+        brandTag.textContent = '🎓 ' + (SL.i18n.lang === 'ar' ? 'منصة الطالب' : SL.i18n.lang === 'ru' ? 'Студент' : 'Student');
+      }
     }
 
     function renderMenu() {

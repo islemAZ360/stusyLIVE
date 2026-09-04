@@ -835,6 +835,9 @@
       if (t) {
         t.done = !t.done;
         if (t.done && t.progressEnabled) t.progress = 100; // completing fills the bar
+        if (t.done && root.SL && root.SL.ui && root.SL.ui.playCheckSound) {
+          root.SL.ui.playCheckSound();
+        }
         emit();
       }
     },
@@ -848,8 +851,14 @@
       var v = Math.max(0, Math.min(100, Math.round(Number(value))));
       if (isNaN(v)) return null;
       tsk.progress = v;
-      if (v >= 100 && tsk.progressEnabled) tsk.done = true;
-      else if (v < 100 && tsk.done && tsk.progressEnabled) tsk.done = false; // dragging back re-opens it
+      if (v >= 100 && tsk.progressEnabled) {
+        if (!tsk.done && root.SL && root.SL.ui && root.SL.ui.playCheckSound) {
+          root.SL.ui.playCheckSound();
+        }
+        tsk.done = true;
+      } else if (v < 100 && tsk.done && tsk.progressEnabled) {
+        tsk.done = false; // dragging back re-opens it
+      }
       emit();
       return v;
     },

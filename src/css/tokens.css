@@ -47,10 +47,15 @@
   --gold-soft: color-mix(in srgb, var(--gold) 15%, var(--surface));
 
   /* Stationery accents */
-  --hl: #ffe9a8;            /* highlighter stroke */
-  --hl-backlog: #ffd6cf;    /* red highlighter for overdue group */
-  --hl-done: #cdeccd;       /* green highlighter for completed group */
-  --ring: #c9b892;          /* spiral binding rings */
+  --hl: rgba(253, 224, 71, 0.42);        /* soft pastel highlighter */
+  --hl-mint: rgba(134, 239, 172, 0.45);   /* green highlighter for completed */
+  --hl-rose: rgba(253, 164, 175, 0.45);   /* red/rose highlighter for overdue */
+  --hl-sky: rgba(125, 211, 252, 0.45);    /* blue highlighter */
+  --hl-backlog: var(--hl-rose);
+  --hl-done: var(--hl-mint);
+  --ring: #c9b892;                        /* spiral binding rings */
+  --notebook-grid: rgba(60, 48, 30, 0.048);
+  --notebook-margin: rgba(239, 68, 68, 0.28);
 
   /* Effects */
   --shadow-1: 0 1px 3px rgba(62, 50, 28, 0.04), 0 2px 12px rgba(62, 50, 28, 0.06);
@@ -121,10 +126,15 @@
   --gold: #e8c45e;
   --gold-soft: color-mix(in srgb, var(--gold) 15%, var(--surface));
 
-  --hl: rgba(255, 214, 90, 0.28);
-  --hl-backlog: rgba(232, 131, 122, 0.26);
-  --hl-done: rgba(140, 196, 154, 0.24);
+  --hl: rgba(250, 204, 21, 0.2);
+  --hl-mint: rgba(74, 222, 128, 0.22);
+  --hl-rose: rgba(244, 63, 94, 0.22);
+  --hl-sky: rgba(56, 189, 248, 0.22);
+  --hl-backlog: var(--hl-rose);
+  --hl-done: var(--hl-mint);
   --ring: #55492f;
+  --notebook-grid: rgba(255, 230, 180, 0.026);
+  --notebook-margin: rgba(244, 63, 94, 0.25);
 
   --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.35), 0 2px 12px rgba(0, 0, 0, 0.28);
   --shadow-2: 0 8px 28px rgba(0, 0, 0, 0.45);
