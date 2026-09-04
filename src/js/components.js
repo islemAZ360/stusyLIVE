@@ -109,6 +109,14 @@
       '<path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/>',
     lightbulb:
       '<path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7z"/>',
+    timer:
+      '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/><path d="M10 2h4"/><path d="M12 2v3"/>',
+    play:
+      '<polygon points="7 4 19 12 7 20 7 4"/>',
+    pause:
+      '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>',
+    rotateCcw:
+      '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
   };
 
   function icon(name, size) {
@@ -992,6 +1000,156 @@
     }
   }
 
+  /* ---------- Focus / Pomodoro Modal ---------- */
+
+  function openPomodoroModal() {
+    var isWork = true;
+    var totalSec = 25 * 60;
+    var remainingSec = totalSec;
+    var timerId = null;
+    var sessionsCount = parseInt(localStorage.getItem('sl_pomo_count') || '0', 10);
+
+    function playChime() {
+      try {
+        var AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        var ctx = new AudioCtx();
+        [523.25, 659.25, 783.99].forEach(function (freq, i) {
+          var osc = ctx.createOscillator();
+          var gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.12, ctx.currentTime + i * 0.15);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.15 + 0.4);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + i * 0.15);
+          osc.stop(ctx.currentTime + i * 0.15 + 0.45);
+        });
+      } catch (e) {}
+    }
+
+    var body = document.createElement('div');
+    body.className = 'pomo-dialog';
+    body.innerHTML =
+      '<div class="pomo-tabs">' +
+      '<button type="button" class="pomo-tab active" data-mode="work">' + icon('fire', 15) + '<span>' + u.esc(t('ov.pomoWork')) + '</span></button>' +
+      '<button type="button" class="pomo-tab" data-mode="break">' + icon('star', 15) + '<span>' + u.esc(t('ov.pomoBreak')) + '</span></button>' +
+      '</div>' +
+      '<div class="pomo-clock-wrap">' +
+      '<svg class="pomo-ring" width="190" height="190" viewBox="0 0 190 190">' +
+      '<circle cx="95" cy="95" r="82" class="pomo-ring-bg"></circle>' +
+      '<circle cx="95" cy="95" r="82" class="pomo-ring-fill" stroke-dasharray="515.22" stroke-dashoffset="0"></circle>' +
+      '</svg>' +
+      '<div class="pomo-clock-inner">' +
+      '<span class="pomo-digits num">25:00</span>' +
+      '<span class="pomo-mode-label">' + u.esc(t('ov.pomoWork')) + '</span>' +
+      '</div>' +
+      '</div>' +
+      '<div class="pomo-actions">' +
+      '<button type="button" class="btn btn-primary pomo-btn-toggle">' + icon('play', 18) + '<span>' + u.esc(t('ov.pomoStart')) + '</span></button>' +
+      '<button type="button" class="btn btn-ghost pomo-btn-reset" title="' + u.esc(t('ov.pomoReset')) + '">' + icon('rotateCcw', 18) + '</button>' +
+      '</div>' +
+      '<div class="pomo-session-badge">' +
+      '⚡ <span>' + (SL.i18n.lang === 'ar' ? 'جلسات اليوم: ' : SL.i18n.lang === 'ru' ? 'Сессий сегодня: ' : 'Sessions today: ') + '</span>' +
+      '<b class="num pomo-session-count">' + sessionsCount + '</b>' +
+      '</div>';
+
+    var sheet = openSheet({
+      title: t('ov.pomodoroTitle'),
+      body: body,
+      autofocus: false,
+      onClose: function () {
+        if (timerId) clearInterval(timerId);
+      },
+    });
+
+    var ringFill = body.querySelector('.pomo-ring-fill');
+    var digits = body.querySelector('.pomo-digits');
+    var toggleBtn = body.querySelector('.pomo-btn-toggle');
+    var resetBtn = body.querySelector('.pomo-btn-reset');
+    var modeLabel = body.querySelector('.pomo-mode-label');
+    var tabs = body.querySelectorAll('.pomo-tab');
+    var countEl = body.querySelector('.pomo-session-count');
+
+    function updateDisplay() {
+      var m = Math.floor(remainingSec / 60);
+      var s = remainingSec % 60;
+      digits.textContent = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+      var circ = 2 * Math.PI * 82; // 515.22
+      var progress = totalSec > 0 ? (totalSec - remainingSec) / totalSec : 0;
+      ringFill.style.strokeDashoffset = (circ * progress) + '';
+    }
+
+    function setMode(work) {
+      if (timerId) {
+        clearInterval(timerId);
+        timerId = null;
+      }
+      isWork = work;
+      totalSec = work ? 25 * 60 : 5 * 60;
+      remainingSec = totalSec;
+      tabs.forEach(function (btn) {
+        btn.classList.toggle('active', (btn.getAttribute('data-mode') === 'work') === work);
+      });
+      modeLabel.textContent = work ? t('ov.pomoWork') : t('ov.pomoBreak');
+      toggleBtn.innerHTML = icon('play', 18) + '<span>' + u.esc(t('ov.pomoStart')) + '</span>';
+      toggleBtn.classList.remove('running');
+      updateDisplay();
+    }
+
+    tabs.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        setMode(btn.getAttribute('data-mode') === 'work');
+      });
+    });
+
+    toggleBtn.addEventListener('click', function () {
+      if (timerId) {
+        clearInterval(timerId);
+        timerId = null;
+        toggleBtn.innerHTML = icon('play', 18) + '<span>' + u.esc(t('ov.pomoStart')) + '</span>';
+        toggleBtn.classList.remove('running');
+      } else {
+        toggleBtn.innerHTML = icon('pause', 18) + '<span>' + u.esc(t('ov.pomoPause')) + '</span>';
+        toggleBtn.classList.add('running');
+        timerId = setInterval(function () {
+          if (remainingSec > 0) {
+            remainingSec--;
+            updateDisplay();
+          } else {
+            clearInterval(timerId);
+            timerId = null;
+            playChime();
+            if (isWork) {
+              sessionsCount++;
+              localStorage.setItem('sl_pomo_count', sessionsCount + '');
+              if (countEl) countEl.textContent = sessionsCount + '';
+              toast(t('ov.pomoCompleted'));
+              setMode(false);
+            } else {
+              toast(t('ov.pomoWork'));
+              setMode(true);
+            }
+          }
+        }, 1000);
+      }
+    });
+
+    resetBtn.addEventListener('click', function () {
+      if (timerId) {
+        clearInterval(timerId);
+        timerId = null;
+      }
+      remainingSec = totalSec;
+      toggleBtn.innerHTML = icon('play', 18) + '<span>' + u.esc(t('ov.pomoStart')) + '</span>';
+      toggleBtn.classList.remove('running');
+      updateDisplay();
+    });
+
+    updateDisplay();
+  }
+
   SL.ui = {
     icon: icon,
     toast: toast,
@@ -1002,6 +1160,7 @@
     openSubjectManager: openSubjectManager,
     openTaskForm: openTaskForm,
     openNoteForm: openNoteForm,
+    openPomodoroModal: openPomodoroModal,
     hydrateImages: hydrateImages,
     hasOpenSheet: function () {
       return openSheets.length > 0;

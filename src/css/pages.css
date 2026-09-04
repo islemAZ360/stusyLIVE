@@ -3290,4 +3290,641 @@ img.contact-avatar {
   opacity: 0.5;
 }
 
+/* ================= Home Dashboard & Overview (V4 Redesign) ================= */
+
+.home-page-container {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding-bottom: 52px;
+}
+
+/* 1. Hero Card */
+.home-hero-card {
+  background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.08), transparent 55%),
+              radial-gradient(circle at bottom left, rgba(234, 179, 8, 0.06), transparent 50%),
+              var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 22px 24px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+  transition: border-color var(--t-med) ease, box-shadow var(--t-med) ease;
+}
+
+.home-hero-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+  box-shadow: var(--shadow-md);
+}
+
+.hero-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.hero-text {
+  flex: 1;
+  min-width: 200px;
+}
+
+.hero-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.hero-date-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-size: 11.5px;
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+
+.hero-streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(249, 115, 22, 0.12);
+  border: 1px solid rgba(249, 115, 22, 0.3);
+  font-size: 11.5px;
+  color: #f97316;
+  font-weight: 600;
+}
+
+.hero-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 0 0 6px 0;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.hero-motiv-msg {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--accent);
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Today's Ring inside Hero */
+.home-progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface-2);
+  padding: 8px 14px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.home-ring-box {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+}
+
+.home-ring-box svg {
+  transform: rotate(-90deg);
+}
+
+.home-ring-box .ring-bg {
+  fill: none;
+  stroke: var(--surface);
+  stroke-width: 4.5;
+}
+
+.home-ring-box .ring-fill {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 4.5;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 400ms ease;
+}
+
+.home-ring-val {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.home-ring-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.home-ring-meta b {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.home-ring-meta span {
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
+/* Hero Quick Actions Bar */
+.hero-actions-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 16px;
+  border-top: 1px dashed var(--border);
+}
+
+.hero-act-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+.hero-act-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* 2. 4-KPI Metric Cards Grid */
+.home-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .home-stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.home-kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  width: 100%;
+}
+
+[dir='rtl'] .home-kpi-card {
+  text-align: right;
+  align-items: flex-start;
+}
+
+.home-kpi-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+}
+
+.kpi-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.kpi-icon-pill {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.kpi-icon-pill.pill-blue {
+  background: rgba(56, 189, 248, 0.14);
+  color: #38bdf8;
+}
+
+.kpi-icon-pill.pill-green {
+  background: rgba(34, 197, 94, 0.14);
+  color: #22c55e;
+}
+
+.kpi-icon-pill.pill-rose {
+  background: rgba(239, 68, 68, 0.14);
+  color: #ef4444;
+}
+
+.kpi-icon-pill.pill-gray {
+  background: var(--surface-2);
+  color: var(--ink-muted);
+}
+
+.kpi-icon-pill.pill-purple {
+  background: rgba(168, 85, 247, 0.14);
+  color: #c084fc;
+}
+
+.kpi-arrow {
+  color: var(--ink-muted);
+  opacity: 0.45;
+  transition: transform 140ms ease, opacity 140ms ease;
+}
+
+.home-kpi-card:hover .kpi-arrow {
+  opacity: 1;
+  transform: translateX(2px);
+}
+
+[dir='rtl'] .home-kpi-card:hover .kpi-arrow {
+  transform: translateX(-2px);
+}
+
+.kpi-num {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+
+.kpi-lbl {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+
+/* 3. Today's Focus Section */
+.home-today-card {
+  padding: 8px 14px;
+}
+
+.home-tasks-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.home-task-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 6px;
+  border-radius: var(--radius-md);
+  transition: background 140ms ease;
+}
+
+.home-task-row + .home-task-row {
+  border-top: 1px dashed var(--border);
+}
+
+.home-task-row:hover {
+  background: var(--surface-2);
+}
+
+.home-check-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff;
+  transition: all 140ms ease;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.home-check-btn:hover {
+  border-color: var(--accent);
+}
+
+.home-check-btn.checked {
+  background: var(--success);
+  border-color: var(--success);
+}
+
+.home-task-main {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.home-task-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 3px;
+}
+
+.home-task-title.done-strike {
+  text-decoration: line-through;
+  opacity: 0.55;
+}
+
+.home-task-sub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--ink-muted);
+}
+
+.task-chip-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.task-chip-sub i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.home-empty-today {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 20px;
+}
+
+.empty-star-pill {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(234, 179, 8, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.empty-today-text {
+  flex: 1;
+}
+
+.empty-today-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+/* 4. Academic Position Card */
+.academic-pos-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.pos-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.home-sub-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+}
+
+.home-sub-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink);
+  transition: border-color 140ms ease, background 140ms ease;
+}
+
+.home-sub-chip i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.home-sub-chip:hover {
+  border-color: var(--accent);
+  background: var(--surface);
+}
+
+/* 5. Upcoming Week Section */
+.home-week-empty-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 26px 20px;
+  gap: 10px;
+}
+
+.week-empty-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(99, 102, 241, 0.1);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2px;
+}
+
+.week-empty-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  max-width: 320px;
+}
+
+.week-empty-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+/* 6. Pomodoro Focus Dialog */
+.pomo-dialog {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 8px 6px;
+}
+
+.pomo-tabs {
+  display: flex;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 4px;
+  margin-bottom: 22px;
+}
+
+.pomo-tab {
+  border: none;
+  background: transparent;
+  padding: 7px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.pomo-tab.active {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+}
+
+.pomo-clock-wrap {
+  position: relative;
+  width: 190px;
+  height: 190px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 22px;
+}
+
+.pomo-ring {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+
+.pomo-ring-bg {
+  fill: none;
+  stroke: var(--surface-2);
+  stroke-width: 8;
+}
+
+.pomo-ring-fill {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 800ms linear;
+}
+
+.pomo-clock-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pomo-digits {
+  font-size: 40px;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.pomo-mode-label {
+  font-size: 12px;
+  color: var(--ink-muted);
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+.pomo-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.pomo-btn-toggle {
+  padding: 10px 28px;
+  border-radius: 999px;
+  font-size: 15px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pomo-btn-toggle.running {
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
+.pomo-btn-reset {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.pomo-session-badge {
+  font-size: 12px;
+  color: var(--ink-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-2);
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+}
+
 
