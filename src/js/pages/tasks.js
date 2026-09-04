@@ -93,8 +93,9 @@
       '" aria-label="' + u.esc(t('a.done')) + '">' +
       '<svg viewBox="0 0 20 20" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
       '<path d="M4 10.5l4 4 8-8.5"/></svg></button>' +
-      '<div class="t-body"><div class="t-title">' + u.esc(task.title) + '</div>' +
-      (task.description ? '<div class="t-desc">' + u.esc(task.description) + '</div>' : '') +
+      '<div class="t-body">' +
+      '<div class="t-title" dir="auto">' + u.esc(task.title) + '</div>' +
+      (task.description ? '<div class="t-desc" dir="auto">' + u.esc(task.description) + '</div>' : '') +
       (task.progressEnabled
         ? '<div class="task-progress" data-pwrap="' + task.id + '">' +
           '<input type="range" min="0" max="100" step="1" value="' + (task.progress || 0) + '" dir="ltr" data-pslider ' +
@@ -106,16 +107,15 @@
       (showDate && task.date
         ? '<span class="chip-date' + (late ? ' late' : '') + '">' + icon('calendar', 12) +
           u.esc(u.fmtDateShort(task.date, SL.i18n.lang)) + '</span>'
-        : (!task.date ? '<span class="chip-date">' + icon('calendar', 12) + u.esc(t('t.openDate')) + '</span>' : '')) +
-      '<span class="tag" style="--c:' + (s ? u.esc(s.color) : 'var(--none-subject)') + '">' +
-      '<span class="dot"></span><span>' + u.esc(s ? s.name : t('t.noSubject')) + '</span></span>' +
+        : (!task.date ? '<span class="chip-date open-date-chip">' + icon('calendar', 12) + u.esc(t('t.openDate')) + '</span>' : '')) +
+      (s
+        ? '<span class="tag" style="--c:' + u.esc(s.color) + '">' +
+          '<span class="dot"></span><span>' + u.esc(s.name) + '</span></span>'
+        : '') +
       '<span class="badge badge-' + task.difficulty + '">' + u.esc(t('t.diff' + cap(task.difficulty))) + '</span>' +
       (late ? '<span class="badge badge-hard">' + icon('clock', 12) + u.esc(t('t.overdue')) + '</span>' : '') +
-      '<button type="button" class="tpen-toggle' + (task.progressEnabled ? ' on' : '') + '" data-act="tpen" role="switch" aria-checked="' +
-      (task.progressEnabled ? 'true' : 'false') + '" aria-label="' + u.esc(t('t.enableProgress')) + '"><span class="tpen-knob"></span></button>' +
-      '<span class="tpen-label">' + u.esc(t('t.progress')) + '</span>' +
       '</div></div>' +
-      '<button class="t-edit" data-act="edit" aria-label="' + u.esc(t('a.edit')) + '">' + icon('pencil', 17) + '</button>' +
+      '<button class="t-edit" data-act="edit" aria-label="' + u.esc(t('a.edit')) + '">' + icon('pencil', 15) + '</button>' +
       '</div>'
     );
   }
@@ -149,29 +149,37 @@
       return;
     }
 
-    listHost.innerHTML =
-      groupHTML(
+    var html = '';
+    if (parts.backlog.length) {
+      html += groupHTML(
         'group-backlog',
         't.groupBacklog',
         parts.backlog.length,
         '<div class="stagger">' + parts.backlog.map(function (x) { return taskRowHTML(x, true); }).join('') + '</div>',
         t('t.backlogEmpty'),
         'backlog'
-      ) +
-      groupHTML(
+      );
+    }
+    if (parts.upcoming.length || (!parts.backlog.length && !parts.done.length)) {
+      html += groupHTML(
         'group-upcoming',
         't.groupUpcoming',
         parts.upcoming.length,
         '<div class="stagger">' + parts.upcoming.map(function (x) { return taskRowHTML(x, true); }).join('') + '</div>',
         t('t.upcomingEmpty')
-      ) +
-      groupHTML(
+      );
+    }
+    if (parts.done.length) {
+      html += groupHTML(
         'group-done',
         't.groupDone',
         parts.done.length,
         '<div class="stagger">' + parts.done.map(function (x) { return taskRowHTML(x, true); }).join('') + '</div>',
         t('t.doneEmpty')
       );
+    }
+
+    listHost.innerHTML = html;
 
     if (animate === false) {
       u.$$('.stagger', listHost).forEach(function (el) {
