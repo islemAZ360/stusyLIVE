@@ -45,7 +45,7 @@
     var weekEnd = u.addDays(today, 7);
     var weekTasks = parts.upcoming
       .filter(function (x) {
-        return x.date <= weekEnd;
+        return x.date && x.date <= weekEnd;
       })
       .slice(0, 5);
 
@@ -146,7 +146,7 @@
           var s = x.subjectId ? SL.store.subjectById(x.subjectId) : null;
           return (
             '<div class="sem-row" style="padding:9px 2px">' +
-            '<span class="chip-date' + (u.isPast(x.date) ? ' late' : '') + '">' + u.esc(u.fmtDateShort(x.date, SL.i18n.lang)) + '</span>' +
+            '<span class="chip-date' + (u.isPast(x.date) ? ' late' : '') + '">' + u.esc(x.date ? u.fmtDateShort(x.date, SL.i18n.lang) : t('t.openDate')) + '</span>' +
             '<span class="s-title" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + u.esc(x.title) + '</span>' +
             '<span class="dot" style="width:10px;height:10px;border-radius:50%;background:' + (s ? u.esc(s.color) : 'var(--none-subject)') + ';flex-shrink:0"></span>' +
             '</div>'

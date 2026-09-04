@@ -235,8 +235,9 @@
     st.tasks.forEach(function (x) {
       (byDate[x.date] = byDate[x.date] || []).push(x);
     });
-    var dates = Object.keys(byDate).sort();
-    if (byDate[today] == null) dates.unshift(today);
+    var dates = Object.keys(byDate).filter(Boolean).sort();
+    if (dates.indexOf(today) === -1) dates.unshift(today);
+    if (byDate[''] && byDate[''].length) dates.push('');
 
     host.innerHTML = dates
       .map(function (d) {
@@ -246,11 +247,11 @@
         var has = list.length > 0;
         var undone = list.some(function (x) { return !x.done; });
         var cls = 'agenda-day' + (has ? ' has-tasks' : ' empty-day') + (d === today ? ' is-today' : '');
-        var sub = d === ""
-          ? u.esc(t('t.openDate')) + ' • ' + (has ? u.esc(t('t.count', { n: list.length })) : '')
+        var sub = d === ''
+          ? (has ? u.esc(t('t.count', { n: list.length })) : '')
           : u.esc(u.fmtDateShort(d, SL.i18n.lang)) + ' • ' +
           (has ? u.esc(t('t.count', { n: list.length })) : u.esc(t('t.agNoTasks')));
-        var allBtn = has && undone && d !== ""
+        var allBtn = has && undone && d !== ''
           ? '<button class="mini-btn" data-act="alldone" data-date="' + d + '" aria-label="' + u.esc(t('t.markAllDone')) + '">' + icon('check', 14) + '</button>'
           : '';
         var rows = has

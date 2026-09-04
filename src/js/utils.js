@@ -113,6 +113,7 @@
   }
 
   utils.fmtDateLong = function (ymdStr, lang) {
+    if (!ymdStr) return '';
     try {
       return new Intl.DateTimeFormat(localeTag(lang), {
         weekday: 'long',
@@ -125,6 +126,7 @@
   };
 
   utils.fmtDateShort = function (ymdStr, lang) {
+    if (!ymdStr) return '';
     try {
       return new Intl.DateTimeFormat(localeTag(lang), {
         day: 'numeric',
@@ -186,7 +188,7 @@
   };
 
   utils.isPast = function (ymdStr) {
-    return ymdStr < utils.todayStr();
+    return !!ymdStr && ymdStr < utils.todayStr();
   };
 
   /* ---------- Colors ---------- */
