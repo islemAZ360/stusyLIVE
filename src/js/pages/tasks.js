@@ -83,9 +83,78 @@
     return { backlog: backlog, upcoming: upcoming, done: done, total: st.tasks.length };
   }
 
+  function formatLinkPreview(url) {
+    try {
+      var parsed = new URL(url);
+      var host = parsed.hostname.replace(/^www\./, '');
+      var isYouTube = /youtube\.com|youtu\.be/i.test(host);
+      var isGithub = /github\.com/i.test(host);
+      var isDrive = /drive\.google\.com|docs\.google\.com/i.test(host);
+
+      var iconName = isYouTube ? 'youtube' : isGithub ? 'link' : 'external';
+      var label = host;
+      if (isYouTube) {
+        label = 'YouTube';
+      } else if (isGithub) {
+        var ghPath = parsed.pathname && parsed.pathname !== '/' ? parsed.pathname.replace(/^\//, '') : '';
+        label = ghPath ? 'GitHub: ' + ghPath : 'GitHub';
+      } else if (isDrive) {
+        label = 'Google Docs';
+      } else {
+        var path = parsed.pathname && parsed.pathname !== '/' ? parsed.pathname : '';
+        if (path.length > 22) path = path.slice(0, 20) + '…';
+        label = host + path;
+      }
+
+      return {
+        url: url,
+        icon: iconName,
+        label: label,
+        isYouTube: isYouTube,
+      };
+    } catch (e) {
+      return {
+        url: url,
+        icon: 'external',
+        label: url.replace(/^https?:\/\//, '').slice(0, 25),
+        isYouTube: false,
+      };
+    }
+  }
+
   function taskRowHTML(task, showDate) {
     var s = subjectOf(task);
     var late = !task.done && task.date && u.isPast(task.date);
+
+    var rawDesc = task.description ? task.description.trim() : '';
+    var urls = u.extractUrls(rawDesc);
+    var cleanDesc = rawDesc;
+    if (urls.length) {
+      urls.forEach(function (url) {
+        cleanDesc = cleanDesc.replace(url, '').trim();
+      });
+    }
+
+    var linksHTML = '';
+    if (urls.length) {
+      linksHTML =
+        '<div class="t-links">' +
+        urls
+          .map(function (url) {
+            var info = formatLinkPreview(url);
+            return (
+              '<a href="' + u.esc(info.url) + '" target="_blank" rel="noopener noreferrer" ' +
+              'class="t-link-btn' + (info.isYouTube ? ' is-youtube' : '') + '" title="' + u.esc(info.url) + '">' +
+              '<span class="t-link-icon">' + icon(info.icon, 14) + '</span>' +
+              '<span class="t-link-label">' + u.esc(info.label) + '</span>' +
+              '<span class="t-link-arrow">' + icon('external', 11) + '</span>' +
+              '</a>'
+            );
+          })
+          .join('') +
+        '</div>';
+    }
+
     return (
       '<div class="card task-card task-row' + (task.done ? ' done' : '') + (late ? ' is-late' : '') +
       '" data-id="' + task.id + '">' +
@@ -95,7 +164,8 @@
       '<path d="M4 10.5l4 4 8-8.5"/></svg></button>' +
       '<div class="t-body">' +
       '<div class="t-title" dir="auto">' + u.esc(task.title) + '</div>' +
-      (task.description ? '<div class="t-desc" dir="auto">' + u.esc(task.description) + '</div>' : '') +
+      (cleanDesc ? '<div class="t-desc" dir="auto">' + u.esc(cleanDesc) + '</div>' : '') +
+      linksHTML +
       (task.progressEnabled
         ? '<div class="task-progress" data-pwrap="' + task.id + '">' +
           '<input type="range" min="0" max="100" step="1" value="' + (task.progress || 0) + '" dir="ltr" data-pslider ' +
@@ -282,6 +352,11 @@
 
   function bindListActions(root2, listHost) {
     listHost.addEventListener('click', function (e) {
+      var linkBtn = e.target.closest('.t-link-btn');
+      if (linkBtn) {
+        // Allow native link navigation to open the URL
+        return;
+      }
       var addBtn = e.target.closest('[data-act="add"]');
       if (addBtn) {
         SL.ui.openTaskForm({ date: view.selected });

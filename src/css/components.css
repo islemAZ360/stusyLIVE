@@ -825,6 +825,99 @@ input[type='date'] {
   opacity: 0.75;
 }
 
+/* task description links */
+.t-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 7px;
+}
+
+.t-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4.5px 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  max-width: 100%;
+  transition: all var(--t-fast) var(--ease-out);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme='dark'] .t-link-btn {
+  background: color-mix(in srgb, var(--accent) 15%, #221e18);
+  border-color: color-mix(in srgb, var(--accent) 38%, transparent);
+  color: var(--accent-strong);
+}
+
+.t-link-btn:hover {
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 25%, transparent);
+  color: var(--accent-strong);
+}
+
+.t-link-btn:active {
+  transform: scale(0.97);
+}
+
+.t-link-btn.is-youtube {
+  background: color-mix(in srgb, #e5484d 10%, var(--surface));
+  border-color: color-mix(in srgb, #e5484d 30%, transparent);
+  color: #e5484d;
+}
+
+[data-theme='dark'] .t-link-btn.is-youtube {
+  background: color-mix(in srgb, #e5484d 15%, #221e18);
+  border-color: color-mix(in srgb, #e5484d 35%, transparent);
+  color: #ff787d;
+}
+
+.t-link-btn.is-youtube:hover {
+  background: color-mix(in srgb, #e5484d 20%, var(--surface));
+  border-color: #e5484d;
+  box-shadow: 0 4px 14px rgba(229, 72, 77, 0.25);
+  color: #ff8c90;
+}
+
+.t-link-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.t-link-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+
+.t-link-arrow {
+  display: flex;
+  align-items: center;
+  opacity: 0.7;
+  flex-shrink: 0;
+  transition: transform var(--t-fast) ease;
+}
+
+.t-link-btn:hover .t-link-arrow {
+  opacity: 1;
+  transform: translate(1px, -1px);
+}
+
+[dir='rtl'] .t-link-btn:hover .t-link-arrow {
+  transform: translate(-1px, -1px);
+}
+
 /* per-task progress slider */
 .task-progress {
   display: flex;

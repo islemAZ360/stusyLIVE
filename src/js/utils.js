@@ -330,6 +330,16 @@
     });
   };
 
+  /* Extract all URLs from a text string */
+  utils.extractUrls = function (text) {
+    if (!text) return [];
+    var re = /\bhttps?:\/\/[^\s<>'"]+/gi;
+    var matches = String(text).match(re) || [];
+    return matches.map(function (url) {
+      return url.replace(/[.,;!?)]+$/, '');
+    });
+  };
+
   /* ---------- Export for node tests ---------- */
 
   SL.utils = utils;
