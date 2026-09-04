@@ -55,10 +55,14 @@
   }
 
   function byDateAsc(a, b) {
+    if (!a.date && b.date) return 1;
+    if (a.date && !b.date) return -1;
     return a.date < b.date ? -1 : a.date > b.date ? 1 : (a.createdAt || 0) - (b.createdAt || 0);
   }
 
   function byDateDesc(a, b) {
+    if (!a.date && b.date) return 1;
+    if (a.date && !b.date) return -1;
     return a.date > b.date ? -1 : a.date < b.date ? 1 : (b.createdAt || 0) - (a.createdAt || 0);
   }
 
@@ -70,7 +74,7 @@
     var done = [];
     st.tasks.forEach(function (task) {
       if (task.done) done.push(task);
-      else if (task.date < today) backlog.push(task);
+      else if (task.date && task.date < today) backlog.push(task);
       else upcoming.push(task);
     });
     backlog.sort(byDateAsc);
@@ -81,7 +85,7 @@
 
   function taskRowHTML(task, showDate) {
     var s = subjectOf(task);
-    var late = !task.done && u.isPast(task.date);
+    var late = !task.done && task.date && u.isPast(task.date);
     return (
       '<div class="card task-card task-row' + (task.done ? ' done' : '') + (late ? ' is-late' : '') +
       '" data-id="' + task.id + '">' +
@@ -99,10 +103,10 @@
           '<span class="tp-val num" data-pval>' + (task.progress || 0) + '%</span></div>'
         : '') +
       '<div class="t-meta">' +
-      (showDate
+      (showDate && task.date
         ? '<span class="chip-date' + (late ? ' late' : '') + '">' + icon('calendar', 12) +
           u.esc(u.fmtDateShort(task.date, SL.i18n.lang)) + '</span>'
-        : '') +
+        : (!task.date ? '<span class="chip-date">' + icon('calendar', 12) + u.esc(t('t.openDate')) + '</span>' : '')) +
       '<span class="tag" style="--c:' + (s ? u.esc(s.color) : 'var(--none-subject)') + '">' +
       '<span class="dot"></span><span>' + u.esc(s ? s.name : t('t.noSubject')) + '</span></span>' +
       '<span class="badge badge-' + task.difficulty + '">' + u.esc(t('t.diff' + cap(task.difficulty))) + '</span>' +
@@ -203,6 +207,7 @@
   }
 
   function weekdayName(ymdStr) {
+    if (!ymdStr) return t('t.openDate');
     try {
       var base = SL.i18n.lang === 'ar' ? 'ar' : SL.i18n.lang === 'ru' ? 'ru' : 'en';
       return new Intl.DateTimeFormat(base + '-u-nu-latn', { weekday: 'long' }).format(u.parseYMD(ymdStr));
@@ -241,10 +246,11 @@
         var has = list.length > 0;
         var undone = list.some(function (x) { return !x.done; });
         var cls = 'agenda-day' + (has ? ' has-tasks' : ' empty-day') + (d === today ? ' is-today' : '');
-        var sub =
-          u.esc(u.fmtDateShort(d, SL.i18n.lang)) + ' • ' +
+        var sub = d === ""
+          ? u.esc(t('t.openDate')) + ' • ' + (has ? u.esc(t('t.count', { n: list.length })) : '')
+          : u.esc(u.fmtDateShort(d, SL.i18n.lang)) + ' • ' +
           (has ? u.esc(t('t.count', { n: list.length })) : u.esc(t('t.agNoTasks')));
-        var allBtn = has && undone
+        var allBtn = has && undone && d !== ""
           ? '<button class="mini-btn" data-act="alldone" data-date="' + d + '" aria-label="' + u.esc(t('t.markAllDone')) + '">' + icon('check', 14) + '</button>'
           : '';
         var rows = has

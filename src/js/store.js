@@ -330,12 +330,13 @@
       return changed;
     },
 
-    /* mark every overdue (past & unfinished) task as done */
+    /* mark every overdue (past & unfinished) task as done —
+       open-date tasks (no date) are never overdue */
     completeAllOverdue: function () {
       var today = u.todayStr();
       var changed = 0;
       state.tasks.forEach(function (task) {
-        if (!task.done && task.date < today) {
+        if (!task.done && task.date && task.date < today) {
           task.done = true;
           changed++;
         }

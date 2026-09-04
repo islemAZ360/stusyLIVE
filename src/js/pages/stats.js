@@ -36,10 +36,10 @@
     st.tasks.forEach(function (task) {
       if (task.done) done++;
       else notDone++;
-      byDay[task.date] = (byDay[task.date] || 0) + 1;
+      if (task.date) byDay[task.date] = (byDay[task.date] || 0) + 1;
       if (task.subjectId) {
         bySub[task.subjectId] = (bySub[task.subjectId] || 0) + 1;
-        if (!task.done && task.date < today) {
+        if (!task.done && task.date && task.date < today) {
           missedBySub[task.subjectId] = (missedBySub[task.subjectId] || 0) + 1;
         }
       }

@@ -679,8 +679,14 @@
       '<textarea class="textarea compact" id="tf-desc" rows="3" placeholder="' + u.esc(t('t.descPh')) + '">' +
       u.esc(task && task.description ? task.description : '') +
       '</textarea></div>' +
-      '<div class="field"><label for="tf-date">' + u.esc(t('t.date')) + '</label>' +
-      '<input class="input" id="tf-date" type="date" value="' + date + '"></div>' +
+      '<div class="field">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">' +
+      '<label for="tf-date" style="margin-bottom:0">' + u.esc(t('t.date')) + '</label>' +
+      '<div style="display:flex;align-items:center;gap:6px">' +
+      '<span style="font-size:13px;color:var(--ink-muted)">' + u.esc(t('t.openDate')) + '</span>' +
+      '<button type="button" id="tf-open-date" class="pin-toggle' + (!date ? ' on' : '') + '" aria-pressed="' + (!date ? 'true' : 'false') + '"><span class="pin-knob"></span></button>' +
+      '</div></div>' +
+      '<input class="input" id="tf-date" type="date" value="' + (date || u.todayStr()) + '" ' + (!date ? 'disabled style="opacity:0.5"' : '') + '></div>' +
       '<div class="field"><label>' + u.esc(t('t.difficulty')) + '</label><div data-host="diff"></div></div>' +
       '<div class="field"><label>' + u.esc(t('t.enableProgress')) + '</label>' +
       '<button type="button" id="tf-pen" class="pin-toggle' + (task && task.progressEnabled ? ' on' : '') + '" aria-pressed="' +
@@ -723,6 +729,17 @@
     });
     pprogInput.addEventListener('input', paintProgress);
     if (penOn) paintProgress();
+    var openDateToggle = body.querySelector('#tf-open-date');
+    var dateInput = body.querySelector('#tf-date');
+    var openDateOn = !date;
+    openDateToggle.addEventListener('click', function () {
+      openDateOn = !openDateOn;
+      openDateToggle.classList.toggle('on', openDateOn);
+      openDateToggle.setAttribute('aria-pressed', openDateOn ? 'true' : 'false');
+      dateInput.disabled = openDateOn;
+      dateInput.style.opacity = openDateOn ? '0.5' : '1';
+    });
+
     var subj = subjectChips(task ? task.subjectId : null);
     body.querySelector('[data-host="subj"]').appendChild(subj);
 
@@ -773,8 +790,8 @@
         input.focus();
         return;
       }
-      var d = body.querySelector('#tf-date').value;
-      if (!u.isValidYMD(d)) {
+      var d = openDateOn ? "" : body.querySelector('#tf-date').value;
+      if (!openDateOn && !u.isValidYMD(d)) {
         fail(t('t.date'));
         return;
       }
