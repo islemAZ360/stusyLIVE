@@ -27,7 +27,7 @@
     return {
       v: 5,
       settings: { lang: null, theme: null, weekStart: 1 }, // 1=Mon, 6=Sat, 0=Sun
-      profile: { degree: '', specialty: '', group: '' },
+      profile: { name: '', degree: '', specialty: '', group: '', university: '', studentId: '' },
       academic: { years: [] }, // [{id, semesters:[{id, status}]}]
       subjects: [], // {id, semesterId, name, color, standing?}
       tasks: [], // {id, title, description, date, difficulty, subjectId, done, createdAt}

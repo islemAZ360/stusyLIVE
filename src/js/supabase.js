@@ -128,7 +128,7 @@ import { createClient } from '@supabase/supabase-js';
     teachers: { subjectId: 'subject_id', subjectName: 'subject_name' },
     contacts: {},
     places: {},
-    profiles: { group: 'group_name' },
+    profiles: { group: 'group_name', name: 'full_name' },
     academic_structures: {},
     standing_logs: { subjectId: 'subject_id' },
     vault_entries: {},

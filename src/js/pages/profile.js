@@ -248,116 +248,359 @@
     });
   }
 
+  /* ---------- active tab state ---------- */
+  var activeProfileTab = 'academic';
+  var expandedYears = {};
+
   /* ---------- main render ---------- */
 
   function render(root2) {
     var st = SL.store.get();
-    var p = st.profile;
+    var p = st.profile || {};
     var cur = SL.store.currentSemester();
     var hasStruct = SL.store.hasStructure();
+
+    // Default to student info if no academic structure yet
+    if (!hasStruct && activeProfileTab === 'academic') {
+      activeProfileTab = 'academic';
+    }
+
+    var connected = SL.supabase && SL.supabase.isConnected && SL.supabase.isConnected();
+    var user = connected ? SL.supabase.getUser() : null;
+    var userEmail = user && user.email ? user.email : '';
+    var userFullName = user && user.user_metadata && user.user_metadata.full_name ? user.user_metadata.full_name : '';
+    var avatarUrl = user && user.user_metadata && user.user_metadata.avatar_url ? user.user_metadata.avatar_url : null;
+
+    // Student identity resolution
+    var studentName = (p.name || userFullName || '').trim();
+    var displayDegree = (p.degree || '').trim();
+    var displaySpec = (p.specialty || '').trim();
+    var displayGroup = (p.group || '').trim();
+    var displayUniv = (p.university || '').trim();
+    var displayId = (p.studentId || '').trim();
+
+    var cardMainTitle = studentName || (displayDegree ? displayDegree + (displaySpec ? ' · ' + displaySpec : '') : t('p.title'));
+    var initialLetter = (studentName || displayDegree || 'S').charAt(0).toUpperCase();
+
+    // Current position text
+    var nowHTML = cur
+      ? t('p.now', {
+          year: SL.i18n.yearName(cur.yearIndex + 1),
+          sem: SL.i18n.semName(cur.semIndex + 1),
+        })
+      : t(hasStruct ? 's.noCurrent' : 'p.noStructure');
+
+    // Calculate academic progress
+    var totalSems = 0;
+    var doneSems = 0;
+    if (hasStruct) {
+      st.academic.years.forEach(function (y) {
+        y.semesters.forEach(function (s) {
+          totalSems++;
+          if (s.status === 'done') doneSems++;
+        });
+      });
+    }
+    var progressPct = totalSems > 0 ? Math.round((doneSems / totalSems) * 100) : 0;
+
+    // Build ID card Avatar HTML
+    var avatarHtml = avatarUrl
+      ? '<img src="' + u.esc(avatarUrl) + '" alt="" class="id-avatar">'
+      : '<div class="id-avatar">' + (studentName ? u.esc(initialLetter) : icon('profile', 28)) + '</div>';
+
+    // Build ID card Pills
+    var pillsHtml = [
+      displayDegree ? '<span class="id-pill id-pill-degree">' + icon('bookmark', 12) + u.esc(displayDegree) + '</span>' : '',
+      displaySpec ? '<span class="id-pill id-pill-spec">' + icon('tasks', 12) + u.esc(displaySpec) + '</span>' : '',
+      displayGroup ? '<span class="id-pill id-pill-group">' + icon('tag', 12) + u.esc(displayGroup) + '</span>' : '',
+      displayUniv ? '<span class="id-pill">' + icon('globe', 12) + u.esc(displayUniv) + '</span>' : '',
+      displayId ? '<span class="id-pill">' + icon('check', 12) + u.esc(displayId) + '</span>' : '',
+    ].filter(Boolean).join('');
 
     root2.innerHTML =
       '<h1 class="page-title">' + u.esc(t('p.title')) + '</h1>' +
 
-      '<div class="card profile-head">' +
-      '<span class="avatar">' + icon('profile', 26) + '</span>' +
-      '<span style="min-width:0"><span class="p-name">' + u.esc(p.degree || t('p.title')) + '</span>' +
-      '<span class="p-sub">' + u.esc([p.specialty, p.group].filter(Boolean).join(' · ') || '—') + '</span></span>' +
+      '<!-- Collegiate Student ID Card -->' +
+      '<div class="profile-id-card" data-host="id-card">' +
+      '<div class="id-card-top">' +
+      '<span class="id-brand-badge">' + icon('logo', 13) + u.esc(t('p.idCardTitle')) + '</span>' +
+      '<span class="id-verified-chip">' + icon('check', 11) + u.esc(t('p.verifiedStudent')) + '</span>' +
+      '</div>' +
+      '<div class="id-card-main">' +
+      '<div class="id-avatar-wrap">' + avatarHtml + '</div>' +
+      '<div class="id-student-info">' +
+      '<div class="id-student-name" data-host="id-name">' + u.esc(cardMainTitle) + '</div>' +
+      '<div class="id-pills-row" data-host="id-pills">' + (pillsHtml || '<span class="id-pill">' + u.esc(t('p.student')) + '</span>') + '</div>' +
+      '</div>' +
+      '</div>' +
+      '<div class="id-card-footer">' +
+      '<span class="id-pos-indicator">' +
+      '<span class="id-pos-dot" style="' + (!cur ? 'background:var(--ink-muted);box-shadow:none;' : '') + '"></span>' +
+      '<span data-host="id-pos">' + u.esc(nowHTML) + '</span>' +
+      '</span>' +
+      '<button type="button" class="id-quick-edit-btn" data-act="goto-student">' +
+      icon('pencil', 12) + u.esc(t('p.editProfile')) + '</button>' +
+      '</div>' +
       '</div>' +
 
-      '<h2 class="section-title">' + u.esc(t('p.student')) + '</h2>' +
-      '<div class="card card-pad" data-host="student"></div>' +
+      '<!-- Profile Segmented Tabs Bar -->' +
+      '<div class="profile-tabs-bar" role="tablist">' +
+      '<button type="button" class="profile-tab-btn ' + (activeProfileTab === 'academic' ? 'active' : '') + '" data-tab="academic" role="tab">' +
+      icon('bookmark', 15) + u.esc(t('p.tabAcademic')) + '</button>' +
+      '<button type="button" class="profile-tab-btn ' + (activeProfileTab === 'student' ? 'active' : '') + '" data-tab="student" role="tab">' +
+      icon('profile', 15) + u.esc(t('p.tabStudent')) + '</button>' +
+      '<button type="button" class="profile-tab-btn ' + (activeProfileTab === 'account' ? 'active' : '') + '" data-tab="account" role="tab">' +
+      icon('cloud', 15) + u.esc(t('p.tabAccount')) + '</button>' +
+      '<button type="button" class="profile-tab-btn ' + (activeProfileTab === 'prefs' ? 'active' : '') + '" data-tab="prefs" role="tab">' +
+      icon('globe', 15) + u.esc(t('p.tabPrefs')) + '</button>' +
+      '</div>' +
 
-      '<h2 class="section-title">' + icon('bookmark', 14) + u.esc(t('p.position')) + '</h2>';
+      '<!-- Tab Panes Container -->' +
+      '<div class="profile-panes-wrap">' +
+      '<div class="profile-pane ' + (activeProfileTab === 'academic' ? 'active' : '') + '" data-pane="academic"></div>' +
+      '<div class="profile-pane ' + (activeProfileTab === 'student' ? 'active' : '') + '" data-pane="student"></div>' +
+      '<div class="profile-pane ' + (activeProfileTab === 'account' ? 'active' : '') + '" data-pane="account"></div>' +
+      '<div class="profile-pane ' + (activeProfileTab === 'prefs' ? 'active' : '') + '" data-pane="prefs"></div>' +
+      '</div>' +
+      '<input type="file" accept="application/json,.json" hidden data-host="importfile">';
 
+    var paneAcademic = root2.querySelector('[data-pane="academic"]');
+    var paneStudent = root2.querySelector('[data-pane="student"]');
+    var paneAccount = root2.querySelector('[data-pane="account"]');
+    var panePrefs = root2.querySelector('[data-pane="prefs"]');
+
+    /* ============================================================
+       PANE 1: ACADEMIC JOURNEY
+       ============================================================ */
     if (!hasStruct) {
-      root2.appendChild(setupCard(root2));
+      paneAcademic.appendChild(setupCard(root2));
     } else {
-      var pos = document.createElement('div');
-      pos.className = 'card position-card';
-      var nowHTML = cur
-        ? t('p.now', {
-            year: SL.i18n.yearName(cur.yearIndex + 1),
-            sem: SL.i18n.semName(cur.semIndex + 1),
-          })
-        : t(hasStruct ? 's.noCurrent' : 'p.noStructure');
-      pos.innerHTML =
-        '<div class="pos-now">' +
-        '<span class="pos-badge">' + icon('bookmark', 16) + '<span>' + u.esc(nowHTML) + '</span></span>' +
-        '<button class="btn btn-ghost" data-act="picksem" style="min-height:40px;font-size:13.5px">' + u.esc(t('p.newSem')) + '</button>' +
+      // 1. Spotlight Card
+      var spotlightCard = document.createElement('div');
+      spotlightCard.className = 'card current-spotlight-card';
+      var curSubs = cur ? SL.store.subjectsOf(cur.sem.id) : [];
+      spotlightCard.innerHTML =
+        '<div class="spotlight-top">' +
+        '<span class="spotlight-badge">' + icon('bookmark', 13) + u.esc(t('p.currentSemBadge')) + '</span>' +
+        (cur ? '<span class="status-chip status-current">' + u.esc(t('st.current')) + '</span>' : '') +
+        '</div>' +
+        '<div class="spotlight-title">' +
+        u.esc(cur ? semTitle(cur.yearIndex, cur.semIndex) : t('s.noCurrent')) +
+        '</div>' +
+        '<div class="spotlight-sub">' +
+        u.esc(cur ? t('p.subjectsCount', { n: curSubs.length }) : t('p.noStructure')) +
+        '</div>' +
+        '<div class="spotlight-actions">' +
+        (cur ? '<button class="btn btn-primary" data-act="mngcur">' + icon('tag', 16) + u.esc(t('p.openSubjects')) + '</button>' : '') +
+        '<button class="btn ' + (cur ? 'btn-ghost' : 'btn-primary') + '" data-act="picksem">' +
+        icon('sync', 16) + u.esc(t('p.changeSem')) + '</button>' +
         '</div>';
-      root2.appendChild(pos);
-    }
+      paneAcademic.appendChild(spotlightCard);
 
-    // structure
-    if (hasStruct) {
-      var structTitle = document.createElement('h2');
-      structTitle.className = 'section-title';
-      structTitle.innerHTML = icon('tasks', 14) + u.esc(t('p.structure'));
-      var editBtn = document.createElement('button');
-      editBtn.className = 'mini-btn';
-      editBtn.style.marginInlineStart = 'auto';
-      editBtn.setAttribute('aria-label', t('p.editStructure'));
-      editBtn.innerHTML = icon('pencil', 15);
-      editBtn.addEventListener('click', function () {
-        openStructureEditor(root2);
+      // 2. Curriculum Progress Card
+      var progCard = document.createElement('div');
+      progCard.className = 'card curriculum-card';
+      progCard.innerHTML =
+        '<div class="curriculum-head">' +
+        '<span class="curriculum-title">' + icon('check', 14) + ' ' + u.esc(t('p.progressTotal')) + '</span>' +
+        '<span class="curriculum-pct">' + progressPct + '%</span>' +
+        '</div>' +
+        '<div class="curriculum-track"><div class="curriculum-fill" style="width:' + progressPct + '%"></div></div>' +
+        '<div class="curriculum-meta">' + u.esc(t('p.progressSems', { done: doneSems, total: totalSems })) + '</div>';
+      paneAcademic.appendChild(progCard);
+
+      // 3. Smart Academic Structure Accordion
+      var structWrap = document.createElement('div');
+      structWrap.innerHTML =
+        '<div class="structure-header-bar">' +
+        '<h2 class="section-title" style="margin:0">' + icon('tasks', 14) + u.esc(t('p.academicOverview')) + '</h2>' +
+        '<div style="display:flex;gap:6px;align-items:center">' +
+        '<button type="button" class="btn btn-ghost btn-sm" data-act="toggleall" style="font-size:12px;padding:4px 10px">' +
+        icon('chevD', 13) + '<span data-host="toggleall-text">' + u.esc(t('p.expandAll')) + '</span></button>' +
+        '<button type="button" class="btn btn-ghost btn-sm" data-act="editstruct" style="font-size:12px;padding:4px 10px">' +
+        icon('pencil', 13) + u.esc(t('p.editStructure')) + '</button>' +
+        '</div>' +
+        '</div>';
+
+      st.academic.years.forEach(function (y, yi) {
+        var isCurYear = cur && cur.yearIndex === yi;
+        var yearSubsCount = 0;
+        y.semesters.forEach(function (s) {
+          yearSubsCount += SL.store.subjectsOf(s.id).length;
+        });
+
+        // Current year is open by default unless user explicitly collapsed it
+        var isOpen = expandedYears[y.id] != null ? expandedYears[y.id] : isCurYear;
+
+        var yCard = document.createElement('div');
+        yCard.className = 'card year-accordion-card ' + (isCurYear ? 'active-year ' : '') + (isOpen ? 'open' : '');
+        yCard.setAttribute('data-yid', y.id);
+
+        yCard.innerHTML =
+          '<button type="button" class="year-accordion-head" data-act="toggle-year" data-yid="' + y.id + '">' +
+          '<span class="year-acc-title">' + u.esc(SL.i18n.yearName(yi + 1)) + '</span>' +
+          '<span class="year-acc-summary">' + u.esc(t('p.yearSummary', { sems: y.semesters.length, subs: yearSubsCount })) + '</span>' +
+          (isCurYear ? '<span class="year-acc-tag">' + icon('bookmark', 11) + u.esc(t('p.activeYear')) + '</span>' : '') +
+          '<span class="year-acc-chevron">' + icon('chevD', 14) + '</span>' +
+          '</button>' +
+          '<div class="year-accordion-body">' +
+          y.semesters
+            .map(function (s, si) {
+              var cnt = SL.store.subjectsOf(s.id).length;
+              var isCurSem = cur && cur.sem.id === s.id;
+              return (
+                '<div class="sem-hub-row">' +
+                '<span class="sem-hub-title">' + u.esc(SL.i18n.semName(si + 1)) + '</span>' +
+                '<button type="button" class="sem-hub-subs-btn" data-act="mngsem-subs" data-sid="' + s.id + '" title="' + u.esc(t('p.openSubjects')) + '">' +
+                icon('tag', 12) + u.esc(t('p.subjectsCount', { n: cnt })) + '</button>' +
+                '<div class="sem-hub-actions">' +
+                '<span class="status-chip status-' + s.status + '">' + u.esc(t('st.' + s.status)) + '</span>' +
+                (!isCurSem
+                  ? '<button type="button" class="mini-btn" data-act="quick-cur" data-sid="' + s.id + '" title="' + u.esc(t('p.markCurrent')) + '" aria-label="' + u.esc(t('p.markCurrent')) + '">' +
+                    icon('bookmark', 14) + '</button>'
+                  : '') +
+                '<button type="button" class="mini-btn" data-act="managesem" data-sid="' + s.id + '" title="' + u.esc(t('a.edit')) + '" aria-label="' + u.esc(t('a.edit')) + '">' +
+                icon('pencil', 14) + '</button>' +
+                '</div>' +
+                '</div>'
+              );
+            })
+            .join('') +
+          '</div>';
+
+        structWrap.appendChild(yCard);
       });
-      structTitle.appendChild(editBtn);
-      root2.appendChild(structTitle);
 
-      var structCard = document.createElement('div');
-      structCard.className = 'card card-pad';
-      structCard.innerHTML = st.academic.years
-        .map(function (y, yi) {
-          return (
-            '<div class="year-block" style="border:none;padding:2px 0">' +
-            '<div class="year-head">' + u.esc(SL.i18n.yearName(yi + 1)) + '</div>' +
-            y.semesters
-              .map(function (s, si) {
-                var cnt = SL.store.subjectsOf(s.id).length;
-                return (
-                  '<div class="sem-row">' +
-                  '<span class="s-title">' + u.esc(SL.i18n.semName(si + 1)) + '</span>' +
-                  '<span class="s-count">' + u.esc(t('p.subjectsCount', { n: cnt })) + '</span>' +
-                  '<span class="s-actions">' +
-                  '<button class="mini-btn" data-sid="' + s.id + '" data-act="managesem" style="min-width:36px;min-height:36px" aria-label="' +
-                  u.esc(t('a.edit')) + '">' + icon('pencil', 15) + '</button>' +
-                  '<span class="status-chip status-' + s.status + '">' + u.esc(t('st.' + s.status)) + '</span>' +
-                  '</span></div>'
-                );
-              })
-              .join('') +
-            '</div>'
-          );
-        })
-        .join('');
-      root2.appendChild(structCard);
+      paneAcademic.appendChild(structWrap);
     }
 
-    // subjects shortcut
-    if (hasStruct && cur) {
-      var subsTitle = document.createElement('h2');
-      subsTitle.className = 'section-title';
-      subsTitle.innerHTML = icon('tag', 14) + u.esc(t('p.subjects'));
-      root2.appendChild(subsTitle);
+    /* ============================================================
+       PANE 2: STUDENT DETAILS
+       ============================================================ */
+    var studentFormCard = document.createElement('div');
+    studentFormCard.className = 'card student-form-card';
+    studentFormCard.innerHTML =
+      '<div class="student-form-head">' +
+      '<h2 class="section-title" style="margin:0">' + icon('profile', 15) + u.esc(t('p.student')) + '</h2>' +
+      '<span class="auto-save-pill" data-host="saved-pill">' + icon('check', 11) + ' ' + u.esc(t('p.autoSaved')) + '</span>' +
+      '</div>' +
+      '<div class="field"><label for="pf-name">' + u.esc(t('p.studentName')) + '</label>' +
+      '<input class="input" id="pf-name" value="' + u.esc(p.name || '') + '" placeholder="' + u.esc(t('p.studentNamePh')) + '"></div>' +
+      '<div class="field"><label for="pf-univ">' + u.esc(t('p.university')) + '</label>' +
+      '<input class="input" id="pf-univ" value="' + u.esc(p.university || '') + '" placeholder="' + u.esc(t('p.universityPh')) + '"></div>' +
+      '<div class="field"><label for="pf-degree">' + u.esc(t('p.degree')) + '</label>' +
+      '<input class="input" id="pf-degree" list="degree-list" value="' + u.esc(p.degree || '') + '" placeholder="' + u.esc(t('p.degreePh')) + '">' +
+      '<datalist id="degree-list">' +
+      '<option value="' + u.esc(t('dl.bachelor')) + '"></option>' +
+      '<option value="' + u.esc(t('dl.master')) + '"></option>' +
+      '<option value="' + u.esc(t('dl.phd')) + '"></option>' +
+      '</datalist></div>' +
+      '<div class="field"><label for="pf-spec">' + u.esc(t('p.specialty')) + '</label>' +
+      '<input class="input" id="pf-spec" value="' + u.esc(p.specialty || '') + '" placeholder="' + u.esc(t('p.specialtyPh')) + '"></div>' +
+      '<div class="field"><label for="pf-group">' + u.esc(t('p.group')) + '</label>' +
+      '<input class="input" id="pf-group" value="' + u.esc(p.group || '') + '" placeholder="' + u.esc(t('p.groupPh')) + '"></div>' +
+      '<div class="field" style="margin-bottom:0"><label for="pf-stuid">' + u.esc(t('p.studentId')) + '</label>' +
+      '<input class="input" id="pf-stuid" value="' + u.esc(p.studentId || '') + '" placeholder="' + u.esc(t('p.studentIdPh')) + '"></div>';
 
-      var subsCard = document.createElement('div');
-      subsCard.className = 'card card-pad';
-      subsCard.innerHTML =
-        '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
-        '<button class="btn btn-ghost" data-act="mngcur" style="flex:1">' + icon('tag', 17) +
-        u.esc(t('p.manageFor', { sem: SL.i18n.semName(cur.semIndex + 1) })) + '</button>' +
-        '<button class="btn btn-ghost" data-act="picksem" style="flex:1">' + icon('chevR', 16) +
-        u.esc(t('p.pickSemester')) + '</button>' +
-        '</div>';
-      root2.appendChild(subsCard);
+    paneStudent.appendChild(studentFormCard);
+
+    // Live debounced auto-save for student details
+    var savedPill = studentFormCard.querySelector('[data-host="saved-pill"]');
+    var hidePillTimer = null;
+
+    var saveProfile = u.debounce(function () {
+      var newName = studentFormCard.querySelector('#pf-name').value;
+      var newUniv = studentFormCard.querySelector('#pf-univ').value;
+      var newDegree = studentFormCard.querySelector('#pf-degree').value;
+      var newSpec = studentFormCard.querySelector('#pf-spec').value;
+      var newGroup = studentFormCard.querySelector('#pf-group').value;
+      var newId = studentFormCard.querySelector('#pf-stuid').value;
+
+      SL.store.setProfile({
+        name: newName,
+        university: newUniv,
+        degree: newDegree,
+        specialty: newSpec,
+        group: newGroup,
+        studentId: newId,
+      });
+
+      // Update ID card live in DOM without full rerender
+      var idNameEl = root2.querySelector('[data-host="id-name"]');
+      var idPillsEl = root2.querySelector('[data-host="id-pills"]');
+      if (idNameEl) {
+        idNameEl.textContent = newName.trim() || (newDegree ? newDegree + (newSpec ? ' · ' + newSpec : '') : t('p.title'));
+      }
+      if (idPillsEl) {
+        var updatedPills = [
+          newDegree ? '<span class="id-pill id-pill-degree">' + icon('bookmark', 12) + u.esc(newDegree) + '</span>' : '',
+          newSpec ? '<span class="id-pill id-pill-spec">' + icon('tasks', 12) + u.esc(newSpec) + '</span>' : '',
+          newGroup ? '<span class="id-pill id-pill-group">' + icon('tag', 12) + u.esc(newGroup) + '</span>' : '',
+          newUniv ? '<span class="id-pill">' + icon('globe', 12) + u.esc(newUniv) + '</span>' : '',
+          newId ? '<span class="id-pill">' + icon('check', 12) + u.esc(newId) + '</span>' : '',
+        ].filter(Boolean).join('');
+        idPillsEl.innerHTML = updatedPills || '<span class="id-pill">' + u.esc(t('p.student')) + '</span>';
+      }
+
+      // Flash auto-saved indicator
+      if (savedPill) {
+        savedPill.classList.add('visible');
+        clearTimeout(hidePillTimer);
+        hidePillTimer = setTimeout(function () {
+          savedPill.classList.remove('visible');
+        }, 1800);
+      }
+    }, 350);
+
+    ['pf-name', 'pf-univ', 'pf-degree', 'pf-spec', 'pf-group', 'pf-stuid'].forEach(function (id) {
+      var inp = studentFormCard.querySelector('#' + id);
+      if (inp) inp.addEventListener('input', saveProfile);
+    });
+
+    /* ============================================================
+       PANE 3: ACCOUNT & CLOUD SECURITY
+       ============================================================ */
+    // Cloud Sync
+    var cloudTitle = document.createElement('h2');
+    cloudTitle.className = 'section-title';
+    cloudTitle.innerHTML = icon('cloud', 14) + u.esc(t('cloud.title'));
+    paneAccount.appendChild(cloudTitle);
+    paneAccount.appendChild(cloudCard(root2));
+
+    // Vault Lock
+    var vaultTitle = document.createElement('h2');
+    vaultTitle.className = 'section-title';
+    vaultTitle.style.marginTop = '18px';
+    vaultTitle.innerHTML = icon('lock', 14) + u.esc(t('p.vault'));
+    paneAccount.appendChild(vaultTitle);
+
+    var vaultCard = document.createElement('div');
+    vaultCard.className = 'card card-pad';
+    paneAccount.appendChild(vaultCard);
+
+    if (!SL.store.vaultHasPin()) {
+      vaultCard.innerHTML =
+        '<div class="g-empty-line" style="margin-bottom:12px">' + u.esc(t('p.vaultNotSet')) + '</div>' +
+        '<button type="button" class="btn btn-ghost btn-block" data-act="goto-vault">' +
+        icon('lock', 16) + u.esc(t('v.title')) + '</button>';
+      var gvBtn = vaultCard.querySelector('[data-act="goto-vault"]');
+      if (gvBtn) {
+        gvBtn.addEventListener('click', function () {
+          SL.router.go('vault');
+        });
+      }
+    } else {
+      renderVaultChange(vaultCard, root2);
     }
 
-    // preferences
+    /* ============================================================
+       PANE 4: PREFERENCES & DATA
+       ============================================================ */
+    // Preferences: Week start
     var prefsTitle = document.createElement('h2');
     prefsTitle.className = 'section-title';
     prefsTitle.innerHTML = icon('globe', 14) + u.esc(t('p.prefs'));
-    root2.appendChild(prefsTitle);
+    panePrefs.appendChild(prefsTitle);
 
     var prefsCard = document.createElement('div');
     prefsCard.className = 'card card-pad';
@@ -368,7 +611,7 @@
       '<option value="6">' + u.esc(t('ws.sat')) + '</option>' +
       '<option value="0">' + u.esc(t('ws.sun')) + '</option>' +
       '</select></div>';
-    root2.appendChild(prefsCard);
+    panePrefs.appendChild(prefsCard);
 
     var wsSelect = prefsCard.querySelector('#pf-ws');
     wsSelect.value = String(st.settings.weekStart == null ? 1 : st.settings.weekStart);
@@ -377,56 +620,134 @@
       render(root2);
     });
 
-    // data
+    // Backup & Data
     var dataTitle = document.createElement('h2');
     dataTitle.className = 'section-title';
+    dataTitle.style.marginTop = '18px';
     dataTitle.innerHTML = icon('download', 14) + u.esc(t('p.data'));
-    root2.appendChild(dataTitle);
+    panePrefs.appendChild(dataTitle);
 
     var dataCard = document.createElement('div');
-    dataCard.className = 'card card-pad data-actions';
+    dataCard.className = 'card card-pad';
     dataCard.innerHTML =
+      '<p class="hint-line" style="margin-bottom:12px">' + u.esc(t('p.backupDesc')) + '</p>' +
+      '<div class="data-actions">' +
       '<button class="btn btn-ghost" data-act="export">' + icon('download', 17) + u.esc(t('p.export')) + '</button>' +
       '<button class="btn btn-ghost" data-act="import">' + icon('upload', 17) + u.esc(t('p.import')) + '</button>' +
-      '<button class="btn btn-danger" data-act="reset">' + icon('trash', 17) + u.esc(t('p.reset')) + '</button>' +
-      '<input type="file" accept="application/json,.json" hidden data-host="importfile">';
-    root2.appendChild(dataCard);
+      '</div>';
+    panePrefs.appendChild(dataCard);
 
-    /* ----- student fields (auto-save) ----- */
-    var host = root2.querySelector('[data-host="student"]');
-    host.innerHTML =
-      '<div class="field"><label for="pf-degree">' + u.esc(t('p.degree')) + '</label>' +
-      '<input class="input" id="pf-degree" list="degree-list" value="' + u.esc(p.degree) + '" placeholder="' + u.esc(t('p.degreePh')) + '">' +
-      '<datalist id="degree-list"><option value="' + u.esc(t('dl.bachelor')) + '"></option>' +
-      '<option value="' + u.esc(t('dl.master')) + '"></option>' +
-      '<option value="' + u.esc(t('dl.phd')) + '"></option></datalist></div>' +
-      '<div class="field"><label for="pf-spec">' + u.esc(t('p.specialty')) + '</label>' +
-      '<input class="input" id="pf-spec" value="' + u.esc(p.specialty) + '" placeholder="' + u.esc(t('p.specialtyPh')) + '"></div>' +
-      '<div class="field" style="margin-bottom:0"><label for="pf-group">' + u.esc(t('p.group')) + '</label>' +
-      '<input class="input" id="pf-group" value="' + u.esc(p.group) + '" placeholder="' + u.esc(t('p.groupPh')) + '"></div>';
+    // Danger Zone
+    var dangerCard = document.createElement('div');
+    dangerCard.className = 'card danger-zone-card';
+    dangerCard.innerHTML =
+      '<div class="danger-zone-head">' + icon('trash', 16) + u.esc(t('p.dangerZone')) + '</div>' +
+      '<div class="danger-zone-note">' + u.esc(t('p.dangerZoneDesc')) + '</div>' +
+      '<button class="btn btn-danger btn-block" data-act="reset">' + icon('trash', 16) + u.esc(t('p.reset')) + '</button>';
+    panePrefs.appendChild(dangerCard);
 
-    var saveProfile = u.debounce(function () {
-      SL.store.setProfile({
-        degree: host.querySelector('#pf-degree').value,
-        specialty: host.querySelector('#pf-spec').value,
-        group: host.querySelector('#pf-group').value,
-      });
-    }, 400);
-    ['pf-degree', 'pf-spec', 'pf-group'].forEach(function (id) {
-      host.querySelector('#' + id).addEventListener('input', saveProfile);
-    });
+    // About
+    var aboutTitle = document.createElement('h2');
+    aboutTitle.className = 'section-title';
+    aboutTitle.style.marginTop = '18px';
+    aboutTitle.innerHTML = icon('logo', 14) + u.esc(t('p.about'));
+    panePrefs.appendChild(aboutTitle);
 
-    /* ----- actions (delegation re-bound safely on every render) ----- */
+    var aboutCard = document.createElement('div');
+    aboutCard.className = 'card card-pad';
+    aboutCard.innerHTML =
+      '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">' +
+      '<span class="brand-mark">' + icon('logo', 20) + 'Study Live</span>' +
+      '<span class="day-count">' + u.esc(t('p.version', { v: SL.VERSION })) + '</span>' +
+      '<span class="day-count" data-host="storage"></span>' +
+      '</div>';
+    panePrefs.appendChild(aboutCard);
+
+    var storageHost = aboutCard.querySelector('[data-host="storage"]');
+    if (root.navigator.storage && root.navigator.storage.estimate) {
+      root.navigator.storage
+        .estimate()
+        .then(function (est) {
+          var mb = (est.usage || 0) / 1048576;
+          storageHost.textContent = t('p.storage', { mb: mb.toFixed(1) });
+        })
+        .catch(function () {});
+    }
+
+    /* ============================================================
+       CENTRAL EVENT DELEGATION
+       ============================================================ */
     if (root2._onClick) root2.removeEventListener('click', root2._onClick);
     root2._onClick = function (e) {
+      // Tab switching
+      var tabBtn = e.target.closest('[data-tab]');
+      if (tabBtn) {
+        var tabId = tabBtn.getAttribute('data-tab');
+        if (tabId) {
+          activeProfileTab = tabId;
+          root2.querySelectorAll('.profile-tab-btn').forEach(function (btn) {
+            btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
+          });
+          root2.querySelectorAll('.profile-pane').forEach(function (pane) {
+            pane.classList.toggle('active', pane.getAttribute('data-pane') === tabId);
+          });
+          return;
+        }
+      }
+
       var act = e.target.closest('[data-act]');
       if (!act) return;
       var a = act.getAttribute('data-act');
-      if (a === 'picksem') {
-        openSemesterPicker(root2);
+
+      if (a === 'goto-student') {
+        activeProfileTab = 'student';
+        root2.querySelectorAll('.profile-tab-btn').forEach(function (btn) {
+          btn.classList.toggle('active', btn.getAttribute('data-tab') === 'student');
+        });
+        root2.querySelectorAll('.profile-pane').forEach(function (pane) {
+          pane.classList.toggle('active', pane.getAttribute('data-pane') === 'student');
+        });
+        var nameInput = root2.querySelector('#pf-name');
+        if (nameInput) nameInput.focus();
+      } else if (a === 'toggle-year') {
+        var yid = act.getAttribute('data-yid');
+        var card = root2.querySelector('.year-accordion-card[data-yid="' + yid + '"]');
+        if (card) {
+          var willOpen = !card.classList.contains('open');
+          card.classList.toggle('open', willOpen);
+          expandedYears[yid] = willOpen;
+        }
+      } else if (a === 'toggleall') {
+        var allCards = root2.querySelectorAll('.year-accordion-card');
+        var anyClosed = Array.prototype.some.call(allCards, function (c) {
+          return !c.classList.contains('open');
+        });
+        allCards.forEach(function (c) {
+          c.classList.toggle('open', anyClosed);
+          var id = c.getAttribute('data-yid');
+          if (id) expandedYears[id] = anyClosed;
+        });
+        var toggleText = root2.querySelector('[data-host="toggleall-text"]');
+        if (toggleText) {
+          toggleText.textContent = anyClosed ? t('p.collapseAll') : t('p.expandAll');
+        }
+      } else if (a === 'quick-cur') {
+        var sidCur = act.getAttribute('data-sid');
+        if (sidCur) {
+          SL.store.setSemesterStatus(sidCur, 'current');
+          SL.ui.toast(t('toast.saved'));
+          render(root2);
+        }
       } else if (a === 'mngcur') {
         var cur2 = SL.store.currentSemester();
         if (cur2) SL.ui.openSubjectManager(cur2.sem.id);
+      } else if (a === 'mngsem-subs') {
+        var targetSid = act.getAttribute('data-sid');
+        if (targetSid) SL.ui.openSubjectManager(targetSid);
+      } else if (a === 'picksem') {
+        openSemesterPicker(root2);
+      } else if (a === 'editstruct') {
+        openStructureEditor(root2);
       } else if (a === 'managesem') {
         openSemesterActions(act.getAttribute('data-sid'), root2);
       } else if (a === 'export') {
@@ -443,7 +764,7 @@
         });
       } else if (a === 'import') {
         var fi = root2.querySelector('[data-host="importfile"]');
-        fi.click();
+        if (fi) fi.click();
       } else if (a === 'reset') {
         SL.ui.confirmSheet({ title: t('p.resetQ'), message: t('p.resetHint'), danger: true }).then(function (yes) {
           if (yes) {
@@ -457,28 +778,29 @@
     root2.addEventListener('click', root2._onClick);
 
     var importInput = root2.querySelector('[data-host="importfile"]');
-    importInput.addEventListener('change', function () {
-      var f = importInput.files && importInput.files[0];
-      if (!f) return;
-      var reader = new FileReader();
-      reader.onload = function () {
-        SL.store.importJSON(String(reader.result)).then(function (res) {
-          if (res.ok) {
-            SL.ui.toast(t('toast.importedN', { t: res.tasks, n: res.notes }));
-            render(root2);
-            SL.router.refresh();
-          } else {
-            SL.ui.toast(t('toast.importBad'), 'error');
-          }
-        });
-      };
-      reader.readAsText(f);
-      importInput.value = '';
-    });
+    if (importInput) {
+      importInput.addEventListener('change', function () {
+        var f = importInput.files && importInput.files[0];
+        if (!f) return;
+        var reader = new FileReader();
+        reader.onload = function () {
+          SL.store.importJSON(String(reader.result)).then(function (res) {
+            if (res.ok) {
+              SL.ui.toast(t('toast.importedN', { t: res.tasks, n: res.notes }));
+              render(root2);
+              SL.router.refresh();
+            } else {
+              SL.ui.toast(t('toast.importBad'), 'error');
+            }
+          });
+        };
+        reader.readAsText(f);
+        importInput.value = '';
+      });
+    }
 
-    /* ---------- cloud sync ---------- */
-
-    function cloudCard(root2) {
+    /* ---------- Cloud card builder ---------- */
+    function cloudCard(root3) {
       var el = document.createElement('div');
       el.className = 'card card-pad cloud-card';
 
@@ -492,16 +814,17 @@
           return;
         }
 
-        var connected = SL.supabase.isConnected();
-        var user = connected ? SL.supabase.getUser() : null;
-        var email = user && user.email ? user.email : '';
-        var fullName = user && user.user_metadata && user.user_metadata.full_name
-          ? user.user_metadata.full_name
-          : email;
-        var avatarUrl = user && user.user_metadata && user.user_metadata.avatar_url
-          ? user.user_metadata.avatar_url : null;
+        var isConn = SL.supabase.isConnected();
+        var uObj = isConn ? SL.supabase.getUser() : null;
+        var em = uObj && uObj.email ? uObj.email : '';
+        var fn = uObj && uObj.user_metadata && uObj.user_metadata.full_name
+          ? uObj.user_metadata.full_name
+          : em;
+        var av = uObj && uObj.user_metadata && uObj.user_metadata.avatar_url
+          ? uObj.user_metadata.avatar_url
+          : null;
 
-        if (!connected) {
+        if (!isConn) {
           el.innerHTML =
             '<div class="cloud-login">' +
             '<div class="cloud-login-icon">' + icon('cloud', 40) + '</div>' +
@@ -519,16 +842,16 @@
         }
 
         // Connected state
-        var avatarHtml = avatarUrl
-          ? '<img src="' + u.esc(avatarUrl) + '" alt="" class="cloud-avatar">'
+        var avHtml = av
+          ? '<img src="' + u.esc(av) + '" alt="" class="cloud-avatar">'
           : '<div class="cloud-avatar cloud-avatar-fallback">' + icon('profile', 22) + '</div>';
 
         el.innerHTML =
           '<div class="cloud-connected">' +
-          '<div class="cloud-user-row">' + avatarHtml +
+          '<div class="cloud-user-row">' + avHtml +
           '<div class="cloud-user-info">' +
-          '<div class="cloud-user-name">' + u.esc(fullName) + '</div>' +
-          '<div class="cloud-user-email">' + u.esc(email) + '</div>' +
+          '<div class="cloud-user-name">' + u.esc(fn) + '</div>' +
+          '<div class="cloud-user-email">' + u.esc(em) + '</div>' +
           '</div>' +
           '<span class="cloud-badge">' + icon('check', 12) + u.esc(t('cloud.connected')) + '</span>' +
           '</div>' +
@@ -564,6 +887,7 @@
         }).then(function () {
           btn.disabled = false;
           draw();
+          render(root3);
         });
       }
 
@@ -575,7 +899,10 @@
           confirmLabel: t('cloud.signOut'),
         }).then(function (yes) {
           if (yes) {
-            SL.supabase.signOut().then(function () { draw(); });
+            SL.supabase.signOut().then(function () {
+              draw();
+              render(root3);
+            });
           }
         });
       }
@@ -590,13 +917,13 @@
             SL.supabase.deleteUser().then(function () {
               SL.store.resetAll();
               draw();
+              render(root3);
             }).catch(function () {
               SL.ui.toast(t('cloud.deleteAccountError'), 'error');
             });
           }
         });
       }
-
 
       draw();
       if (SL.supabase && SL.supabase.onAuthChange) {
@@ -605,61 +932,40 @@
       return el;
     }
 
-    var cloudTitle = document.createElement('h2');
-    cloudTitle.className = 'section-title';
-    cloudTitle.innerHTML = icon('cloud', 14) + u.esc(t('cloud.title'));
-    root2.appendChild(cloudTitle);
-    root2.appendChild(cloudCard(root2));
-
-    // vault lock (change PIN with hint)
-    var vaultTitle = document.createElement('h2');
-    vaultTitle.className = 'section-title';
-    vaultTitle.innerHTML = icon('lock', 14) + u.esc(t('p.vault'));
-    root2.appendChild(vaultTitle);
-
-    var vaultCard = document.createElement('div');
-    vaultCard.className = 'card card-pad';
-    root2.appendChild(vaultCard);
-
-    if (!SL.store.vaultHasPin()) {
-      vaultCard.innerHTML = '<div class="g-empty-line">' + u.esc(t('p.vaultNotSet')) + '</div>';
-    } else {
-      renderVaultChange();
-    }
-
-    function renderVaultChange() {
-      vaultCard.innerHTML =
+    /* ---------- Vault Lock card helper ---------- */
+    function renderVaultChange(vCard, root3) {
+      vCard.innerHTML =
         '<div class="field" style="margin-bottom:10px"><label for="pv-hint">' + u.esc(t('p.vaultHintLabel')) + '</label>' +
         '<input class="input" id="pv-hint" dir="auto" placeholder="' + u.esc(t('p.vaultHintPh')) + '">' +
         '<span class="field-error" role="alert" data-host="verr" hidden></span></div>' +
-        '<button class="btn btn-ghost" data-act="vcontinue">' + icon('check', 16) + u.esc(t('p.vaultContinue')) + '</button>';
-      var hintInput = vaultCard.querySelector('#pv-hint');
-      var verr = vaultCard.querySelector('[data-host="verr"]');
-      vaultCard.querySelector('[data-act="vcontinue"]').addEventListener('click', function () {
+        '<button type="button" class="btn btn-ghost" data-act="vcontinue">' + icon('check', 16) + u.esc(t('p.vaultContinue')) + '</button>';
+      var hintInput = vCard.querySelector('#pv-hint');
+      var verr = vCard.querySelector('[data-host="verr"]');
+      vCard.querySelector('[data-act="vcontinue"]').addEventListener('click', function () {
         if (hintInput.value.trim() !== SL.store.vaultHint()) {
           verr.textContent = t('p.vaultHintWrong');
           verr.hidden = false;
           return;
         }
-        renderNewPin();
+        renderNewPin(vCard, root3);
       });
       hintInput.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') vaultCard.querySelector('[data-act="vcontinue"]').click();
+        if (e.key === 'Enter') vCard.querySelector('[data-act="vcontinue"]').click();
       });
     }
 
-    function renderNewPin() {
-      vaultCard.innerHTML =
+    function renderNewPin(vCard, root3) {
+      vCard.innerHTML =
         '<div class="field" style="margin-bottom:10px"><label for="pv-pin1">' + u.esc(t('p.vaultNewPin')) + '</label>' +
         '<input class="input" id="pv-pin1" type="password" inputmode="numeric" maxlength="4" dir="ltr"></div>' +
         '<div class="field" style="margin-bottom:10px"><label for="pv-pin2">' + u.esc(t('p.vaultNewPinConfirm')) + '</label>' +
         '<input class="input" id="pv-pin2" type="password" inputmode="numeric" maxlength="4" dir="ltr">' +
         '<span class="field-error" role="alert" data-host="perr" hidden></span></div>' +
-        '<button class="btn btn-primary" data-act="vsave">' + icon('check', 16) + u.esc(t('p.vaultSave')) + '</button>';
-      var perr = vaultCard.querySelector('[data-host="perr"]');
-      vaultCard.querySelector('[data-act="vsave"]').addEventListener('click', function () {
-        var p1 = vaultCard.querySelector('#pv-pin1').value;
-        var p2 = vaultCard.querySelector('#pv-pin2').value;
+        '<button type="button" class="btn btn-primary" data-act="vsave">' + icon('check', 16) + u.esc(t('p.vaultSave')) + '</button>';
+      var perr = vCard.querySelector('[data-host="perr"]');
+      vCard.querySelector('[data-act="vsave"]').addEventListener('click', function () {
+        var p1 = vCard.querySelector('#pv-pin1').value;
+        var p2 = vCard.querySelector('#pv-pin2').value;
         if (!/^\d{4}$/.test(p1)) {
           perr.textContent = t('v.need4');
           perr.hidden = false;
@@ -671,42 +977,15 @@
           return;
         }
         SL.store.changeVaultPin(SL.store.vaultHint(), p1).then(function (res) {
-          // hint verified in the previous step
           if (!res.ok) {
             perr.textContent = t('p.vaultHintWrong');
             perr.hidden = false;
             return;
           }
           SL.ui.toast(t('p.vaultChanged'));
-          render(root2);
+          render(root3);
         });
       });
-    }
-
-    // about
-    var aboutTitle = document.createElement('h2');
-    aboutTitle.className = 'section-title';
-    aboutTitle.innerHTML = icon('logo', 14) + u.esc(t('p.about'));
-    root2.appendChild(aboutTitle);
-
-    var aboutCard = document.createElement('div');
-    aboutCard.className = 'card card-pad';
-    aboutCard.innerHTML =
-      '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">' +
-      '<span class="brand-mark">' + icon('logo', 20) + 'Study Live</span>' +
-      '<span class="day-count">' + u.esc(t('p.version', { v: SL.VERSION })) + '</span>' +
-      '<span class="day-count" data-host="storage"></span>' +
-      '</div>';
-    root2.appendChild(aboutCard);
-    var storageHost = aboutCard.querySelector('[data-host="storage"]');
-    if (root.navigator.storage && root.navigator.storage.estimate) {
-      root.navigator.storage
-        .estimate()
-        .then(function (est) {
-          var mb = (est.usage || 0) / 1048576;
-          storageHost.textContent = t('p.storage', { mb: mb.toFixed(1) });
-        })
-        .catch(function () {});
     }
   }
 
